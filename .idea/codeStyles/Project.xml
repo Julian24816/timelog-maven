@@ -1,0 +1,31 @@
+<component name="ProjectCodeStyleConfiguration">
+  <code_scheme name="Project" version="173">
+    <CsvCodeStyleSettings>
+      <option name="TRIM_LEADING_WHITE_SPACES" value="true" />
+      <option name="TRIM_TRAILING_WHITE_SPACES" value="true" />
+      <option name="TABULARIZE" value="false" />
+      <option name="WHITE_SPACES_OUTSIDE_QUOTES" value="false" />
+    </CsvCodeStyleSettings>
+    <HSQLCodeStyleSettings version="2">
+      <option name="USE_GENERIC_STYLE" value="true" />
+      <option name="QUOTE_IDENTIFIER" value="1" />
+    </HSQLCodeStyleSettings>
+    <codeStyleSettings language="JAVA">
+      <arrangement>
+        <groups>
+          <group>
+            <type>GETTERS_AND_SETTERS</type>
+            <order>KEEP</order>
+          </group>
+          <group>
+            <type>DEPENDENT_METHODS</type>
+            <order>BREADTH_FIRST</order>
+          </group>
+        </groups>
+      </arrangement>
+    </codeStyleSettings>
+    <codeStyleSettings language="csv">
+      <option name="RIGHT_MARGIN" value="-1" />
+    </codeStyleSettings>
+  </code_scheme>
+</component>
