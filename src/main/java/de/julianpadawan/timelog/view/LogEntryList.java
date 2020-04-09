@@ -25,6 +25,7 @@ import javafx.scene.shape.VLineTo;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -114,24 +115,28 @@ public class LogEntryList extends ScrollPane {
         return entries;
     }
 
-    private static final class ActivityLine extends HBox {
+    public static final class ActivityLine extends HBox {
         private static final double TIME_TEXT_WIDTH = 30, TIME_TEXT_HEIGHT = 16,
                 DETAILS_VISIBLE_HEIGHT = 16;
         private final LogEntry entry;
         private BooleanBinding detailsVisibility;
 
         private ActivityLine(LogEntry entry) {
+            this(entry, null);
+        }
+
+        public ActivityLine(LogEntry entry, LocalDateTime cutoff) {
             super(10);
             this.entry = entry;
-            createLayout(entry);
+            createLayout(entry, cutoff);
             setOnMouseClicked(this::onMouseClicked);
             backgroundProperty().bind(CustomBindings.apply(
                     CustomBindings.select(entry.activityProperty(), Activity::colorProperty),
                     color -> new Background(new BackgroundFill(Color.valueOf(color), null, null))));
         }
 
-        private void createLayout(LogEntry entry) {
-            final VBox time = getTimeVBox(entry, entry.getActivity().getId() == Preferences.getInt("SleepID"));
+        private void createLayout(LogEntry entry, LocalDateTime cutoff) {
+            final VBox time = getTimeVBox(entry, cutoff, entry.getActivity().getId() == Preferences.getInt("SleepID"));
             final TextFlow details = getDetails(entry);
             detailsVisibility = time.heightProperty().greaterThanOrEqualTo(DETAILS_VISIBLE_HEIGHT);
             detailsVisibility.addListener(observable -> {
@@ -141,7 +146,12 @@ public class LogEntryList extends ScrollPane {
             getChildren().add(time);
         }
 
-        private VBox getTimeVBox(LogEntry entry, boolean sleep) {
+        private void onMouseClicked(MouseEvent mouseEvent) {
+            if (mouseEvent.getClickCount() != 2 || !mouseEvent.getButton().equals(MouseButton.PRIMARY)) return;
+            new LogEntryDialog(entry).show();
+        }
+
+        private VBox getTimeVBox(LogEntry entry, LocalDateTime cutoff, boolean sleep) {
             final TimeText start = new TimeText();
             start.valueProperty().bind(entry.startProperty());
             final TimeText end = new TimeText();
@@ -152,7 +162,7 @@ public class LogEntryList extends ScrollPane {
             time.setAlignment(Pos.CENTER);
             time.setPrefWidth(TIME_TEXT_WIDTH);
 
-            Consumer<Double> applyLineHeight = lineHeight -> {
+            applyLineHeight(entry, cutoff, sleep, lineHeight -> {
                 time.getChildren().removeAll(start, end);
                 if (lineHeight > TIME_TEXT_HEIGHT * 2) {
                     time.getChildren().add(0, start);
@@ -163,27 +173,8 @@ public class LogEntryList extends ScrollPane {
                     else time.getChildren().add(0, start);
                     vLineTo.setY(lineHeight - TIME_TEXT_HEIGHT);
                 } else vLineTo.setY(lineHeight);
-            };
-
-            if (sleep) applyLineHeight.accept(Preferences.getDouble("SleepLineHeight"));
-            else {
-                InvalidationListener invalidated = observable -> {
-                    if (entry.getEnd() == null) return;
-                    final long minutes = this.entry.getStart().until(this.entry.getEnd(), ChronoUnit.MINUTES);
-                    final double lineHeight = minutes / Preferences.getDouble("MinuteToPixelScale");
-                    applyLineHeight.accept(lineHeight);
-                };
-                entry.startProperty().addListener(invalidated);
-                entry.endProperty().addListener(invalidated);
-                invalidated.invalidated(null);
-            }
-
+            });
             return time;
-        }
-
-        private void onMouseClicked(MouseEvent mouseEvent) {
-            if (mouseEvent.getClickCount() != 2 || !mouseEvent.getButton().equals(MouseButton.PRIMARY)) return;
-            new LogEntryDialog(entry).show();
         }
 
         private JoiningTextFlow getDetails(LogEntry entry) {
@@ -192,6 +183,22 @@ public class LogEntryList extends ScrollPane {
             return new JoiningTextFlow(activityName,
                     entry.whatProperty(),
                     CustomBindings.select(entry.meansOfTransportProperty(), MeansOfTransport::nameProperty));
+        }
+
+        private void applyLineHeight(LogEntry entry, LocalDateTime cutoff, boolean sleep, Consumer<Double> applyLineHeight) {
+            if (cutoff != null || !sleep) {
+                InvalidationListener invalidated = observable -> {
+                    if (entry.getEnd() == null) return;
+                    LocalDateTime startTime = this.entry.getStart();
+                    if (cutoff != null && startTime.isBefore(cutoff)) startTime = cutoff;
+                    final long minutes = startTime.until(entry.getEnd(), ChronoUnit.MINUTES);
+                    final double lineHeight = minutes / Preferences.getDouble("MinuteToPixelScale");
+                    applyLineHeight.accept(lineHeight);
+                };
+                entry.startProperty().addListener(invalidated);
+                entry.endProperty().addListener(invalidated);
+                invalidated.invalidated(null);
+            } else applyLineHeight.accept(Preferences.getDouble("SleepLineHeight"));
         }
 
         @Override

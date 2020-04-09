@@ -5,6 +5,7 @@ import de.julianpadawan.timelog.model.LogEntry;
 import de.julianpadawan.timelog.view.edit.LogEntryDialog;
 import de.julianpadawan.timelog.view.edit.PreferencesDialog;
 import de.julianpadawan.timelog.view.insight.LookAtDayDialog;
+import de.julianpadawan.timelog.view.insight.LookAtDaysDialog;
 import de.julianpadawan.timelog.view.insight.Report;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -14,8 +15,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
 import java.util.function.Supplier;
 
 public class MainScene extends Scene {
@@ -53,75 +56,98 @@ public class MainScene extends Scene {
                         reportMenuItem("Previous Week", Report::previousWeek),
                         certainTimeSpanReportMenuItem()
                 ),
-                new Menu("Tools", null,
-                        lookAtMenuItem(),
-                        editAllMenuItem(),
+                new Menu("LookAt", null,
+                        lookAtYesterdayMenuItem(),
+                        lookAtCertainDayMenuItem(),
                         new SeparatorMenuItem(),
+                        lookAtCurrentWeekMenuItem(),
+                        lookAtLastWeekMenuItem(),
+                        lookAtCertainTimeSpanMenuItem()
+                ),
+                new Menu("Tools", null,
+                        editAllMenuItem(),
                         reloadMenuItem(),
                         refreshCanvasMenuItem(),
-                        new SeparatorMenuItem(),
                         preferencesMenuItem()
                 )
         );
     }
 
     private MenuItem reportMenuItem(final String label, final Supplier<Report> report) {
-        final MenuItem menuItem = new MenuItem(label);
-        menuItem.setOnAction(event -> report.get().show());
-        return menuItem;
+        return getMenuItem(label, () -> report.get().show());
     }
 
     private MenuItem certainDayReportMenuItem() {
-        final MenuItem menuItem = new MenuItem("For Day ...");
-        menuItem.setOnAction(event -> DatePickerDialog.before(LocalDate.now().minus(1, ChronoUnit.DAYS))
-                .showAndWait().map(Report::on).ifPresent(Dialog::show));
-        return menuItem;
+        return getMenuItem("For Day ...",
+                () -> DatePickerDialog.before(LocalDate.now().minus(1, ChronoUnit.DAYS))
+                        .showAndWait().map(Report::on).ifPresent(Dialog::show));
     }
 
     private MenuItem certainTimeSpanReportMenuItem() {
-        final MenuItem menuItem = new MenuItem("From ... To ...");
-        menuItem.setOnAction(event -> DatePickerDialog.before("From", LocalDate.now())
-                .showAndWait().ifPresent(fromDate -> DatePickerDialog.between("To", fromDate, LocalDate.now().plus(1, ChronoUnit.DAYS))
-                        .showAndWait().ifPresent(toDate -> Report.between(fromDate, toDate).show())));
-        return menuItem;
+        return getMenuItem("From ... To ...",
+                () -> DatePickerDialog.before("From", LocalDate.now())
+                        .showAndWait().ifPresent(fromDate -> DatePickerDialog.between("To", fromDate, LocalDate.now().plus(1, ChronoUnit.DAYS))
+                                .showAndWait().ifPresent(toDate -> Report.between(fromDate, toDate).show())));
     }
 
-    private MenuItem lookAtMenuItem() {
-        final MenuItem lookAt = new MenuItem("Look At Day ...");
-        lookAt.setOnAction(event -> DatePickerDialog.before(LocalDate.now())
-                .showAndWait().map(LookAtDayDialog::new).ifPresent(Dialog::show));
-        return lookAt;
+    private MenuItem lookAtYesterdayMenuItem() {
+        return getMenuItem("Look At Yesterday",
+                () -> new LookAtDayDialog(LocalDate.now().minus(1, ChronoUnit.DAYS)).show());
+    }
+
+    private MenuItem lookAtCertainDayMenuItem() {
+        return getMenuItem("Look At Day ...",
+                () -> DatePickerDialog.before(LocalDate.now()).showAndWait()
+                        .ifPresent(date -> new LookAtDayDialog(date).show()));
+    }
+
+    private MenuItem lookAtCurrentWeekMenuItem() {
+        return getMenuItem("Look At Current Week",
+                () -> new LookAtDaysDialog(LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)), 7)
+                        .show());
+    }
+
+    private MenuItem lookAtLastWeekMenuItem() {
+        return getMenuItem("Look At Last Week",
+                () -> new LookAtDaysDialog(
+                        LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).minus(7, ChronoUnit.DAYS), 7)
+                        .show());
+    }
+
+    private MenuItem lookAtCertainTimeSpanMenuItem() {
+        return getMenuItem("Look At Days From ... To ...",
+                () -> DatePickerDialog.any("From").showAndWait()
+                        .ifPresent(from -> DatePickerDialog.after("To", from).showAndWait()
+                                .ifPresent(to -> new LookAtDaysDialog(from, to).show())));
     }
 
     private MenuItem editAllMenuItem() {
-        final MenuItem editAll = new MenuItem("Edit All Entries");
-        editAll.setOnAction(event -> LogEntry.FACTORY.getAll().forEach(logEntry -> new LogEntryDialog(logEntry).showAndWait()));
-        return editAll;
+        return getMenuItem("Edit All Entries",
+                () -> LogEntry.FACTORY.getAll().forEach(logEntry -> new LogEntryDialog(logEntry).showAndWait()));
     }
 
     private MenuItem reloadMenuItem() {
-        final MenuItem reload = new MenuItem("Reload List");
-        reload.setOnAction(event -> {
-            reloadList();
-        });
-        return reload;
+        return getMenuItem("Reload List", this::reloadList);
     }
 
     private MenuItem refreshCanvasMenuItem() {
-        final MenuItem refreshCanvas = new MenuItem("Redraw Minute Marks");
-        refreshCanvas.setOnAction(event -> logEntryList.refreshCanvas());
-        return refreshCanvas;
+        return getMenuItem("Redraw Minute Marks", logEntryList::refreshCanvas);
     }
 
     private MenuItem preferencesMenuItem() {
-        final MenuItem preferences = new MenuItem("Preferences");
-        preferences.setOnAction(event -> new PreferencesDialog().showAndWait()
-                .filter(buttonType -> buttonType.equals(ButtonType.OK))
-                .ifPresent(ok -> {
-                    reloadList();
-                    logEntryList.refreshCanvas();
-                }));
-        return preferences;
+        return getMenuItem("Preferences",
+                () -> new PreferencesDialog().showAndWait()
+                        .filter(buttonType -> buttonType.equals(ButtonType.OK))
+                        .ifPresent(ok -> {
+                            reloadList();
+                            logEntryList.refreshCanvas();
+                        }));
+    }
+
+    private MenuItem getMenuItem(String label, final Runnable eventHandler) {
+        final MenuItem menuItem = new MenuItem(label);
+        menuItem.setOnAction(event -> eventHandler.run());
+        return menuItem;
     }
 
     private void reloadList() {
