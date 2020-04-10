@@ -27,7 +27,6 @@ import javafx.scene.text.Text;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.Consumer;
@@ -70,7 +69,7 @@ public class CurrentEntryDisplay extends GridPane {
                         }
                     }
                 }, 0, 500);
-                button.setText("Stop");
+                button.setText("Edit");
                 transport.bind(CustomBindings.select(getValue().meansOfTransportProperty(), MeansOfTransport::nameProperty));
                 what.bind(getValue().whatProperty());
             }
@@ -90,34 +89,24 @@ public class CurrentEntryDisplay extends GridPane {
         createLayout();
     }
 
+    private void doubleClick(MouseEvent mouseEvent) {
+        if (mouseEvent.getClickCount() != 2 || !mouseEvent.getButton().equals(MouseButton.PRIMARY)) return;
+        onButtonPress(null);
+    }
+
     private void onButtonPress(ActionEvent event) {
         if (entry.get() == null) {
-            final Optional<LogEntry> logEntry = new LogEntryDialog().showAndWait();
-            logEntry.ifPresent(value -> {
+            new LogEntryDialog().showAndWait().ifPresent(value -> {
                 if (value.getEnd() == null) entry.setValue(value);
                 else newCompleteEntry.accept(value);
             });
         } else {
-            final Optional<LocalDateTime> endTime = new EndTimeDialog().showAndWait();
-            endTime.ifPresent(end -> {
-                entry.get().endProperty().setValue(end);
-                if (LogEntry.FACTORY.update(entry.get())) {
-                    newCompleteEntry.accept(entry.get());
-                    entry.set(LogEntry.FACTORY.getUnfinishedEntry());
-                }
-            });
-        }
-    }
-
-    private void doubleClick(MouseEvent mouseEvent) {
-        if (mouseEvent.getClickCount() != 2 || !mouseEvent.getButton().equals(MouseButton.PRIMARY)) return;
-        new LogEntryDialog(entry.get()).showAndWait().ifPresent(logEntry -> {
-            if (logEntry.getEnd() == null) entry.setValue(logEntry);
-            else {
-                entry.setValue(null);
-                newCompleteEntry.accept(logEntry);
+            new LogEntryDialog(entry.get()).showAndWait();
+            if (entry.get().getEnd() != null) {
+                newCompleteEntry.accept(entry.get());
+                entry.set(LogEntry.FACTORY.getUnfinishedEntry());
             }
-        });
+        }
     }
 
     private void createLayout() {

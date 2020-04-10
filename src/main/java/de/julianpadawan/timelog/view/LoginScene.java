@@ -11,7 +11,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 
 import java.io.IOException;
-import java.nio.file.Paths;
 
 public class LoginScene extends Scene {
 
@@ -56,7 +55,7 @@ public class LoginScene extends Scene {
     private void login(ActionEvent event) {
         Database.init(driver.getValue().name + ":" + database.getText(), username.getText(), password.getText());
         try {
-            Database.execFile(Paths.get("db", "timelog.sql"));
+            Database.execFile("db/timelog.sql");
             preferenceMap.dumpPreferences();
             onLogin.run();
         } catch (IOException e) {

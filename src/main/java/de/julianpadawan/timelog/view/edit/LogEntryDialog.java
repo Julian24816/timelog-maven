@@ -2,6 +2,7 @@ package de.julianpadawan.timelog.view.edit;
 
 import de.julianpadawan.common.customFX.*;
 import de.julianpadawan.timelog.model.*;
+import javafx.beans.binding.BooleanBinding;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextField;
 
@@ -42,8 +43,13 @@ public final class LogEntryDialog extends ObjectDialog<LogEntry> {
         gridPane2C.addButtonRow(Util.button("After Previous", this::afterPrevious), Util.button("Now", this::nowStart));
         endDate = gridPane2C.addRow("End", new DatePicker(LocalDate.now()));
         endTime = gridPane2C.addRow("", new TimeTextField(null));
-        gridPane2C.addButtonRow(Util.button("+1 min", () -> plusMinutes(1)), Util.button("+10 min", () -> plusMinutes(10)),
-                Util.button("Now", this::nowEnd), Util.button("Clear", this::clear));
+        gridPane2C.addButtonRow(
+                Util.button("-10 min", () -> plusMinutes(-10)),
+                Util.button("-1 min", () -> plusMinutes(-1)),
+                Util.button("Now", this::nowEnd),
+                Util.button("+1 min", () -> plusMinutes(1)),
+                Util.button("+10 min", () -> plusMinutes(10)),
+                Util.button("Clear", this::clear));
 
         Util.applyAfterFocusLost(startDate);
         Util.applyAfterFocusLost(endDate);
@@ -51,6 +57,20 @@ public final class LogEntryDialog extends ObjectDialog<LogEntry> {
         addOKRequirement(activity.valueProperty().isNotNull());
         addOKRequirement(startDate.valueProperty().isNotNull());
         addOKRequirement(startTime.valueProperty().isNotNull());
+        addOKRequirement(endDate.valueProperty().isNull().or(endTime.valueProperty().isNull().or(new BooleanBinding() {
+            {
+                bind(startDate.valueProperty(), startTime.valueProperty(),
+                        endDate.valueProperty(), endTime.valueProperty());
+            }
+
+            @Override
+            protected boolean computeValue() {
+                if (startDate.getValue() == null || startTime.getValue() == null
+                        || endDate.getValue() == null || endTime.getValue() == null) return false;
+                return !LocalDateTime.of(endDate.getValue(), endTime.getValue())
+                        .isBefore(LocalDateTime.of(startDate.getValue(), startTime.getValue()));
+            }
+        })));
 
         if (editedObject != null) {
             activity.setValue(editedObject.getActivity());

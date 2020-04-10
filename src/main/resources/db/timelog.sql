@@ -39,9 +39,14 @@ CREATE TABLE IF NOT EXISTS qualityTime
     logEntry integer not null
         references log
             on update cascade on delete cascade,
-    person integer not null
+    person   integer not null
         references person
             on update cascade on delete cascade,
     constraint qualityTime_pk
         unique (logEntry, person)
 );
+
+CREATE TABLE IF NOT EXISTS goal
+(
+    id integer not null primary key autoincrement
+)

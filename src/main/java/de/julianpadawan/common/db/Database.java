@@ -2,9 +2,8 @@ package de.julianpadawan.common.db;
 
 import org.apache.commons.dbcp2.BasicDataSource;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -35,8 +34,18 @@ public final class Database {
         dataSource.setPassword(password);
     }
 
-    public static void execFile(Path filename) throws IOException {
-        for (String sql : Files.readString(filename).split(";")) {
+    public static void execFile(String filename) throws IOException {
+        final InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename);
+        if (inputStream == null) return;
+        StringBuilder textBuilder = new StringBuilder();
+        try (Reader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+            int c;
+            while ((c = reader.read()) != -1) {
+                textBuilder.append((char) c);
+            }
+        }
+        final String file = textBuilder.toString();
+        for (String sql : file.split(";")) {
             sql = sql.strip();
             if (!sql.isEmpty()) execute(sql, PreparedStatement::execute, null);
         }

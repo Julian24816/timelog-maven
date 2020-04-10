@@ -2,6 +2,7 @@ package de.julianpadawan.timelog.view;
 
 import de.julianpadawan.common.customFX.DatePickerDialog;
 import de.julianpadawan.timelog.model.LogEntry;
+import de.julianpadawan.timelog.preferences.Preferences;
 import de.julianpadawan.timelog.view.edit.LogEntryDialog;
 import de.julianpadawan.timelog.view.edit.PreferencesDialog;
 import de.julianpadawan.timelog.view.insight.LookAtDayDialog;
@@ -32,7 +33,8 @@ public class MainScene extends Scene {
         logEntryList.getEntries().addAll(LogEntry.FACTORY.getAllFinishedOn(LocalDate.now()));
 
         final CurrentEntryDisplay currentEntryDisplay = new CurrentEntryDisplay(logEntry -> {
-            if (logEntry.getEnd().toLocalDate().equals(LocalDate.now())) logEntryList.getEntries().add(logEntry);
+            if (logEntry.getEnd().isAfter(LocalDate.now().atTime(Preferences.getTime("StartOfDay"))))
+                logEntryList.getEntries().add(logEntry);
         });
         HBox.setHgrow(currentEntryDisplay, Priority.ALWAYS);
 
