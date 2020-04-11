@@ -1,4 +1,4 @@
-package de.julianpadawan.timelog.statistics;
+package de.julianpadawan.timelog.insight;
 
 import java.util.Collection;
 import java.util.HashSet;

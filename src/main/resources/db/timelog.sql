@@ -48,5 +48,9 @@ CREATE TABLE IF NOT EXISTS qualityTime
 
 CREATE TABLE IF NOT EXISTS goal
 (
-    id integer not null primary key autoincrement
+    id       integer not null primary key autoincrement,
+    activity integer not null
+        references activity
+            on update cascade on delete cascade,
+    interval text    not null
 )

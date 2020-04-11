@@ -41,7 +41,7 @@ public final class Activity extends ModelObject<Activity> {
         this.color.setValue(Objects.requireNonNull(color));
     }
 
-    private int getDepth() {
+    public int getDepth() {
         if (getId() == 0) return 0;
         if (parentId.get() == 0) return 1;
         else return getParent().getDepth() + 1;
@@ -116,7 +116,7 @@ public final class Activity extends ModelObject<Activity> {
     }
 
     public static final class ActivityFactory extends ModelFactory<Activity> {
-        private Map<Integer, Activity> activityMap = new HashMap<>();
+        private final Map<Integer, Activity> activityMap = new HashMap<>();
 
         private ActivityFactory() {
             super(view -> new Activity(

@@ -9,6 +9,7 @@ import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableStringValue;
 
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -125,21 +126,26 @@ public final class LogEntry extends ModelObject<LogEntry> {
     }
 
     public static final class LogEntryFactory extends ModelFactory<LogEntry> {
+
+        public static final ModelTableDefinition<LogEntry> TABLE_DEFINITION = new ModelTableDefinition<LogEntry>("log")
+                .withColumn("activity", ColumnType.getForeignKeyColumn(Activity.class), LogEntry::getActivity)
+                .withColumn("what", ColumnType.STRING, LogEntry::getWhat)
+                .withColumn("start", ColumnType.TIMESTAMP, LogEntry::getStart)
+                .withColumn("end", ColumnType.TIMESTAMP, LogEntry::getEnd)
+                .withColumn("transport", ColumnType.getForeignKeyColumn(MeansOfTransport.class), LogEntry::getMeansOfTransport);
+
         private LogEntryFactory() {
-            super(view -> new LogEntry(
-                            view.getInt("id"),
-                            Activity.FACTORY.getForId(view.getInt("activity")),
-                            view.getString("what"),
-                            view.getDateTime("start"),
-                            view.getDateTime("end"),
-                            view.getOptionalInt("transport").map(MeansOfTransport.FACTORY::getForId).orElse(null)
-                    ),
-                    new ModelTableDefinition<LogEntry>("log")
-                            .withColumn("activity", ColumnType.getForeignKeyColumn(Activity.class), LogEntry::getActivity)
-                            .withColumn("what", ColumnType.STRING, LogEntry::getWhat)
-                            .withColumn("start", ColumnType.TIMESTAMP, LogEntry::getStart)
-                            .withColumn("end", ColumnType.TIMESTAMP, LogEntry::getEnd)
-                            .withColumn("transport", ColumnType.getForeignKeyColumn(MeansOfTransport.class), LogEntry::getMeansOfTransport)
+            super(LogEntryFactory::getFromResultView, TABLE_DEFINITION);
+        }
+
+        public static LogEntry getFromResultView(ResultView view) throws SQLException {
+            return new LogEntry(
+                    view.getInt("id"),
+                    Activity.FACTORY.getForId(view.getInt("activity")),
+                    view.getString("what"),
+                    view.getDateTime("start"),
+                    view.getDateTime("end"),
+                    view.getOptionalInt("transport").map(MeansOfTransport.FACTORY::getForId).orElse(null)
             );
         }
 

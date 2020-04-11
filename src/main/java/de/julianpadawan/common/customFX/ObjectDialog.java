@@ -4,7 +4,7 @@ import de.julianpadawan.common.db.ModelObject;
 import javafx.beans.Observable;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.value.ObservableBooleanValue;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
@@ -16,7 +16,7 @@ public abstract class ObjectDialog<T extends ModelObject<?>> extends Dialog<T> {
     protected final GridPane2C gridPane2C;
 
     private final Button okButton;
-    private BooleanExpression okButtonDisabled;
+    private BooleanExpression okButtonEnabled;
 
     protected ObjectDialog(String name, T editedObject) {
         super();
@@ -32,7 +32,7 @@ public abstract class ObjectDialog<T extends ModelObject<?>> extends Dialog<T> {
 
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         okButton = (Button) getDialogPane().lookupButton(ButtonType.OK);
-        okButtonDisabled = BooleanExpression.booleanExpression(new SimpleBooleanProperty(false));
+        okButtonEnabled = BooleanExpression.booleanExpression(new SimpleBooleanProperty(true));
         setResultConverter(this::convertResult);
     }
 
@@ -46,14 +46,14 @@ public abstract class ObjectDialog<T extends ModelObject<?>> extends Dialog<T> {
 
     protected abstract boolean save();
 
-    protected void addOKRequirement(ObservableBooleanValue value) {
-        okButtonDisabled.removeListener(this::onDisableInvalidated);
-        okButtonDisabled = okButtonDisabled.or(BooleanExpression.booleanExpression(value).not());
-        okButtonDisabled.addListener(this::onDisableInvalidated);
-        onDisableInvalidated(null);
+    protected void addOKRequirement(ObservableValue<Boolean> value) {
+        okButtonEnabled.removeListener(this::onEnableInvalidated);
+        okButtonEnabled = okButtonEnabled.and(BooleanExpression.booleanExpression(value));
+        okButtonEnabled.addListener(this::onEnableInvalidated);
+        onEnableInvalidated(null);
     }
 
-    private void onDisableInvalidated(Observable observable) {
-        okButton.setDisable(okButtonDisabled.getValue());
+    private void onEnableInvalidated(Observable observable) {
+        okButton.setDisable(!okButtonEnabled.getValue());
     }
 }

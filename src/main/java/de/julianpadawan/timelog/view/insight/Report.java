@@ -1,5 +1,10 @@
 package de.julianpadawan.timelog.view.insight;
 
+import de.julianpadawan.timelog.insight.ActivityStatistic;
+import de.julianpadawan.timelog.insight.QualityTimeStatistic;
+import de.julianpadawan.timelog.insight.Statistic;
+import de.julianpadawan.timelog.insight.StatisticalDatum;
+import de.julianpadawan.timelog.model.LogEntry;
 import javafx.geometry.Insets;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ScrollPane;
@@ -7,11 +12,6 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
-import de.julianpadawan.timelog.model.LogEntry;
-import de.julianpadawan.timelog.statistics.ActivityStatistic;
-import de.julianpadawan.timelog.statistics.QualityTimeStatistic;
-import de.julianpadawan.timelog.statistics.Statistic;
-import de.julianpadawan.timelog.statistics.StatisticalDatum;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;

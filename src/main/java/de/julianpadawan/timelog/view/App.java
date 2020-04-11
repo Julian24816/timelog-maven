@@ -5,6 +5,7 @@ import de.julianpadawan.common.db.Database;
 import de.julianpadawan.timelog.preferences.Preferences;
 import javafx.application.Application;
 import javafx.stage.Stage;
+
 import java.io.IOException;
 import java.time.LocalTime;
 
@@ -39,7 +40,7 @@ public class App extends Application {
         Preferences.set("MinuteMarkEvery", 30);
         Preferences.set("MinuteMarkWidth", 10);
         Preferences.set("MinuteMarkColor", "BLACK");
-        Preferences.set("StartOfDay", LocalTime.of(4, 0));
+        Preferences.set("StartOfDay", LocalTime.of(5, 50));
     }
 
     @Override

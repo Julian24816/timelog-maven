@@ -1,4 +1,4 @@
-package de.julianpadawan.timelog.statistics;
+package de.julianpadawan.timelog.insight;
 
 public interface StatisticalDatum<D> {
     StatisticalDatum<D> plus(StatisticalDatum<D> value);

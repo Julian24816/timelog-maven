@@ -1,6 +1,7 @@
 package de.julianpadawan.timelog.view;
 
 import de.julianpadawan.common.customFX.DatePickerDialog;
+import de.julianpadawan.timelog.model.Goal;
 import de.julianpadawan.timelog.model.LogEntry;
 import de.julianpadawan.timelog.preferences.Preferences;
 import de.julianpadawan.timelog.view.edit.LogEntryDialog;
@@ -12,8 +13,6 @@ import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 
 import java.time.DayOfWeek;
@@ -24,19 +23,19 @@ import java.util.function.Supplier;
 
 public class MainScene extends Scene {
 
-    private final LogEntryList logEntryList;
+    private final LogEntryList logEntryList = new LogEntryList();
+    private final GoalsList goals = new GoalsList();
 
     public MainScene() {
         super(new BorderPane(), 350, Region.USE_COMPUTED_SIZE);
 
-        logEntryList = new LogEntryList();
         logEntryList.getEntries().addAll(LogEntry.FACTORY.getAllFinishedOn(LocalDate.now()));
+        goals.getGoals().addAll(Goal.FACTORY.getAll());
 
         final CurrentEntryDisplay currentEntryDisplay = new CurrentEntryDisplay(logEntry -> {
             if (logEntry.getEnd().isAfter(LocalDate.now().atTime(Preferences.getTime("StartOfDay"))))
                 logEntryList.getEntries().add(logEntry);
         });
-        HBox.setHgrow(currentEntryDisplay, Priority.ALWAYS);
 
         final BorderPane borderPane = (BorderPane) getRoot();
         borderPane.setTop(getMenuBar());
@@ -44,6 +43,8 @@ public class MainScene extends Scene {
         BorderPane.setMargin(logEntryList, new Insets(10));
         borderPane.setBottom(currentEntryDisplay);
         BorderPane.setMargin(currentEntryDisplay, new Insets(0, 10, 10, 10));
+        borderPane.setRight(goals);
+        BorderPane.setMargin(goals, new Insets(10, 10, 10, 0));
     }
 
     private MenuBar getMenuBar() {
@@ -62,6 +63,7 @@ public class MainScene extends Scene {
                         lookAtYesterdayMenuItem(),
                         lookAtCertainDayMenuItem(),
                         new SeparatorMenuItem(),
+                        lootAtLast4DaysMenuItem(),
                         lookAtCurrentWeekMenuItem(),
                         lookAtLastWeekMenuItem(),
                         lookAtCertainTimeSpanMenuItem()
@@ -93,31 +95,35 @@ public class MainScene extends Scene {
     }
 
     private MenuItem lookAtYesterdayMenuItem() {
-        return getMenuItem("Look At Yesterday",
+        return getMenuItem("Yesterday",
                 () -> new LookAtDayDialog(LocalDate.now().minus(1, ChronoUnit.DAYS)).show());
     }
 
     private MenuItem lookAtCertainDayMenuItem() {
-        return getMenuItem("Look At Day ...",
+        return getMenuItem("Day ...",
                 () -> DatePickerDialog.before(LocalDate.now()).showAndWait()
                         .ifPresent(date -> new LookAtDayDialog(date).show()));
     }
 
+    private MenuItem lootAtLast4DaysMenuItem() {
+        return getMenuItem("Last 4 days", () -> new LookAtDaysDialog(LocalDate.now().minusDays(3), 4).show());
+    }
+
     private MenuItem lookAtCurrentWeekMenuItem() {
-        return getMenuItem("Look At Current Week",
+        return getMenuItem("Current Week",
                 () -> new LookAtDaysDialog(LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)), 7)
                         .show());
     }
 
     private MenuItem lookAtLastWeekMenuItem() {
-        return getMenuItem("Look At Last Week",
+        return getMenuItem("Last Week",
                 () -> new LookAtDaysDialog(
                         LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).minus(7, ChronoUnit.DAYS), 7)
                         .show());
     }
 
     private MenuItem lookAtCertainTimeSpanMenuItem() {
-        return getMenuItem("Look At Days From ... To ...",
+        return getMenuItem("Days From ... To ...",
                 () -> DatePickerDialog.any("From").showAndWait()
                         .ifPresent(from -> DatePickerDialog.after("To", from).showAndWait()
                                 .ifPresent(to -> new LookAtDaysDialog(from, to).show())));
