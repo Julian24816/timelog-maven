@@ -2,9 +2,11 @@ package de.julianpadawan.timelog.insight;
 
 import de.julianpadawan.timelog.model.Goal;
 import de.julianpadawan.timelog.model.LogEntry;
+import de.julianpadawan.timelog.preferences.Preferences;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
 public abstract class DurationAccumulatingStreakCalculator extends StreakCalculator {
@@ -36,7 +38,7 @@ public abstract class DurationAccumulatingStreakCalculator extends StreakCalcula
 
     @Override
     protected final boolean accept(LogEntry entry) {
-        final LocalDate date = toFirstOfInterval(entry.getEnd().toLocalDate());
+        final LocalDate date = toFirstOfInterval(getDate(entry.getEnd()));
         if (!accumulate(date, Duration.between(entry.getStart(), entry.getEnd()))) return true;
         if (latest == null) latest = earliest = date;
 
@@ -48,6 +50,11 @@ public abstract class DurationAccumulatingStreakCalculator extends StreakCalcula
             return true;
         }
         return false;
+    }
+
+    private LocalDate getDate(LocalDateTime time) {
+        if (!time.toLocalTime().isBefore(Preferences.getTime("StartOfDay"))) return time.toLocalDate();
+        return time.toLocalDate().minusDays(1);
     }
 
     private boolean accumulate(LocalDate date, Duration duration) {
