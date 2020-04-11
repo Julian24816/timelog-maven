@@ -13,7 +13,6 @@ import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Region;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -27,7 +26,7 @@ public class MainScene extends Scene {
     private final GoalsList goals = new GoalsList();
 
     public MainScene() {
-        super(new BorderPane(), 350, Region.USE_COMPUTED_SIZE);
+        super(new BorderPane());
 
         logEntryList.getEntries().addAll(LogEntry.FACTORY.getAllFinishedOn(LocalDate.now()));
         goals.getGoals().addAll(Goal.FACTORY.getAll());

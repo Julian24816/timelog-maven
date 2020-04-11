@@ -55,4 +55,8 @@ public final class AssociationTableDefinition<A extends ModelObject<A>, B extend
         firstColumnType.apply(statement, 1, obj.getFirst());
         secondColumnType.apply(statement, 2, obj.getSecond());
     }
+
+    public String getCountSQL() {
+        return "SELECT COUNT(*) FROM " + tableName + " WHERE " + firstColumnPlaceholder + " AND " + secondColumnPlaceholder;
+    }
 }

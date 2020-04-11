@@ -3,6 +3,7 @@ package de.julianpadawan.common.db;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,9 +31,17 @@ public final class ResultView {
         return resultSet.getInt(getIndex(key));
     }
 
+    public Duration getDuration(String key) throws SQLException {
+        return Duration.ofMinutes(getLong(key));
+    }
+
     public LocalDateTime getDateTime(String key) throws SQLException {
         final Timestamp timestamp = resultSet.getTimestamp(getIndex(key));
         return timestamp == null ? null : timestamp.toLocalDateTime();
+    }
+
+    public long getLong(String key) throws SQLException {
+        return resultSet.getLong(getIndex(key));
     }
 
     public Optional<Integer> getOptionalInt(String key) throws SQLException {

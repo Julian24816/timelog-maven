@@ -1,53 +1,28 @@
 package de.julianpadawan.timelog.insight;
 
-import de.julianpadawan.timelog.model.Activity;
-import de.julianpadawan.timelog.model.LogEntry;
+import de.julianpadawan.timelog.model.Goal;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 
-public final class DayStreakCalculator extends StreakCalculator {
+public final class DayStreakCalculator extends DurationAccumulatingStreakCalculator {
     static final String PATTERN = "[1-9]\\d*d";
 
-    private final int interval;
-
-    private LocalDate reference;
-    private LocalDate latest = null;
-    private LocalDate earliest = null;
-
-    public DayStreakCalculator(Activity activity, String interval) {
-        super(activity);
-        this.interval = Integer.parseInt(interval.substring(0, interval.length() - 1));
+    public DayStreakCalculator(Goal goal) {
+        super(goal);
     }
 
     @Override
-    protected void preInit(LocalDate reference) {
-        this.reference = reference;
+    protected int getDayInterval(Goal goal) {
+        return Integer.parseInt(goal.getInterval().substring(0, goal.getInterval().length() - 1));
     }
 
     @Override
-    protected boolean accept(LogEntry entry) {
-        final LocalDate date = entry.getEnd().toLocalDate();
-        if (latest == null) latest = earliest = date;
-
-        final long daysBefore = date.until(earliest, ChronoUnit.DAYS);
-        if (daysBefore < 0) throw new IllegalStateException();
-        if (daysBefore == 0) return true;
-        if (daysBefore <= interval) {
-            earliest = date;
-            return true;
-        }
-        return false;
+    protected LocalDate toFirstOfInterval(LocalDate date) {
+        return date;
     }
 
     @Override
-    protected void postInit() {
-        final long daysLeft = latest.until(reference, ChronoUnit.DAYS);
-        if (daysLeft < 0) throw new IllegalStateException("accept was called with entry later than reference");
-
-        final long streakDays = earliest.until(latest, ChronoUnit.DAYS) + 1;
-        if (daysLeft == 0) setStreak(String.format("%dd", streakDays));
-        else if (daysLeft < interval) setStreak(String.format("(%d) %dd", streakDays, streakDays + daysLeft));
-        else setStreak(String.format("(%d) 0d", streakDays));
+    protected String formatStreakDays(long streakDurationDays) {
+        return streakDurationDays + 1 + "d";
     }
 }

@@ -80,15 +80,15 @@ public class GoalsList extends VBox {
             setPadding(new Insets(5));
             this.goal = goal;
 
-            Text activityName = new Text(), interval = new Text();
-            activityName.textProperty().bind(CustomBindings.select(goal.activityProperty(), Activity::nameProperty));
-            interval.textProperty().bind(goal.intervalProperty());
+            Text goalName = new Text();
+            goalName.textProperty().bind(goal.displayNameProperty());
 
             Region spacer = new Region();
+            spacer.setMinWidth(10);
             spacer.setMaxWidth(Double.MAX_VALUE);
             HBox.setHgrow(spacer, Priority.ALWAYS);
 
-            getChildren().addAll(activityName, new Text(" ("), interval, new Text("): "), spacer, streak);
+            getChildren().addAll(goalName, spacer, streak);
 
             backgroundProperty().bind(CustomBindings.apply(
                     CustomBindings.select(goal.activityProperty(), Activity::colorProperty),
@@ -96,8 +96,7 @@ public class GoalsList extends VBox {
             setOnMouseClicked(this::doubleClick);
 
             if (load) {
-                goal.activityProperty().addListener(this::load);
-                goal.intervalProperty().addListener(this::load);
+                goal.displayNameProperty().addListener(this::load);
                 this.load(null);
             }
         }

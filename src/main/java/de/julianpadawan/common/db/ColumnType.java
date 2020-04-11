@@ -3,6 +3,7 @@ package de.julianpadawan.common.db;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.function.Function;
 
@@ -17,6 +18,12 @@ public final class ColumnType<T> {
             (statement, index, value) -> statement.setTimestamp(index,
                     value == null ? null : Timestamp.valueOf(value)),
             param -> tryCast(LocalDateTime.class, param));
+    public static final ColumnType<Duration> DURATION = new ColumnType<>(
+            (statement, index, value) -> {
+                if (value == null) statement.setObject(index, null);
+                else statement.setLong(index, value.toMinutes());
+            },
+            param -> tryCast(Duration.class, param));
     public static final ColumnType<Boolean> BOOLEAN = new ColumnType<>(
             PreparedStatement::setBoolean,
             param -> tryCast(Boolean.class, param));

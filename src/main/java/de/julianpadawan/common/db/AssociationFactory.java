@@ -51,4 +51,13 @@ public abstract class AssociationFactory<A extends ModelObject<A>, B extends Mod
             return affectedRows > 0;
         }, false);
     }
+
+    public boolean exists(A first, B second) {
+        String sql = definition.getCountSQL();
+        return Database.execute(sql, statement -> {
+            definition.setSQLParams(statement, first, second);
+            final ResultSet resultSet = statement.executeQuery();
+            return resultSet.next() && resultSet.getInt(1) > 0;
+        }, false);
+    }
 }
