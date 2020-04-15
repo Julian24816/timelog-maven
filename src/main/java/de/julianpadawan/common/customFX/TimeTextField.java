@@ -13,6 +13,10 @@ public class TimeTextField extends TextField {
     private static final DateTimeFormatter LAX_TIME_FORMATTER = DateTimeFormatter.ofPattern("H:m");
     private final ReadOnlyObjectWrapper<LocalTime> value;
 
+    public TimeTextField() {
+        this(null);
+    }
+
     public TimeTextField(LocalTime value) {
         super();
         this.value = new ReadOnlyObjectWrapper<>(this, "time", value);

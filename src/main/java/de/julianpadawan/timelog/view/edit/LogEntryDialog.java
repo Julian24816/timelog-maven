@@ -3,12 +3,9 @@ package de.julianpadawan.timelog.view.edit;
 import de.julianpadawan.common.customFX.*;
 import de.julianpadawan.timelog.model.*;
 import javafx.beans.binding.BooleanBinding;
-import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextField;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 
 public final class LogEntryDialog extends ObjectDialog<LogEntry> {
@@ -16,10 +13,7 @@ public final class LogEntryDialog extends ObjectDialog<LogEntry> {
     private final TextField what;
     private final CreatingChoiceBox<MeansOfTransport> meansOfTransport;
     private final AssociationFlowPane<LogEntry, Person, QualityTime> people;
-    private final DatePicker startDate;
-    private final TimeTextField startTime;
-    private final DatePicker endDate;
-    private final TimeTextField endTime;
+    private final DateTimePicker start, end;
 
     public LogEntryDialog() {
         this(null);
@@ -38,83 +32,63 @@ public final class LogEntryDialog extends ObjectDialog<LogEntry> {
         what = gridPane2C.addRow("Details", new TextField());
         gridPane2C.addSeparator();
 
-        startDate = gridPane2C.addRow("Start", new DatePicker(LocalDate.now()));
-        startTime = gridPane2C.addRow("", new TimeTextField(LocalTime.now()));
+        start = gridPane2C.addRow("Start", new DateTimePicker(LocalDateTime.now()));
         gridPane2C.addButtonRow(Util.button("After Previous", this::afterPrevious), Util.button("Now", this::nowStart));
-        endDate = gridPane2C.addRow("End", new DatePicker(LocalDate.now()));
-        endTime = gridPane2C.addRow("", new TimeTextField(null));
+        end = gridPane2C.addRow("End", new DateTimePicker());
         gridPane2C.addButtonRow(
-                Util.button("-10 min", () -> plusMinutes(-10)),
-                Util.button("-1 min", () -> plusMinutes(-1)),
+                Util.button("-10 min", () -> plusMinutes(-10, LocalDateTime.now())),
+                Util.button("-1 min", () -> plusMinutes(-1, LocalDateTime.now())),
                 Util.button("Now", this::nowEnd),
-                Util.button("+1 min", () -> plusMinutes(1)),
-                Util.button("+10 min", () -> plusMinutes(10)),
-                Util.button("Clear", this::clear));
-
-        Util.applyAfterFocusLost(startDate);
-        Util.applyAfterFocusLost(endDate);
+                Util.button("+1 min", () -> plusMinutes(1, start.getValue())),
+                Util.button("+10 min", () -> plusMinutes(10, start.getValue())),
+                Util.button("Clear", this::clearEnd));
 
         addOKRequirement(activity.valueProperty().isNotNull());
-        addOKRequirement(startDate.valueProperty().isNotNull());
-        addOKRequirement(startTime.valueProperty().isNotNull());
-        addOKRequirement(endDate.valueProperty().isNull().or(endTime.valueProperty().isNull().or(new BooleanBinding() {
+        addOKRequirement(start.valueProperty().isNotNull());
+        addOKRequirement(end.valueProperty().isNull().or(new BooleanBinding() {
             {
-                bind(startDate.valueProperty(), startTime.valueProperty(),
-                        endDate.valueProperty(), endTime.valueProperty());
+                bind(start.valueProperty(), end.valueProperty());
             }
 
             @Override
             protected boolean computeValue() {
-                if (startDate.getValue() == null || startTime.getValue() == null
-                        || endDate.getValue() == null || endTime.getValue() == null) return false;
-                return !LocalDateTime.of(endDate.getValue(), endTime.getValue())
-                        .isBefore(LocalDateTime.of(startDate.getValue(), startTime.getValue()));
+                if (start.getValue() == null || end.getValue() == null) return false;
+                return !end.getValue().isBefore(start.getValue());
             }
-        })));
+        }));
 
         if (editedObject != null) {
             activity.setValue(editedObject.getActivity());
             what.setText(editedObject.getWhat());
             meansOfTransport.setValue(editedObject.getMeansOfTransport());
-            startDate.setValue(editedObject.getStart().toLocalDate());
-            startTime.setValue(editedObject.getStart().toLocalTime());
-            if (editedObject.getEnd() != null) {
-                endDate.setValue(editedObject.getEnd().toLocalDate());
-                endTime.setValue(editedObject.getEnd().toLocalTime());
-            }
+            start.setValue(editedObject.getStart());
+            end.setValue(editedObject.getEnd());
         }
     }
 
     private void afterPrevious() {
         LogEntry lastEntry = LogEntry.FACTORY.getLast();
-        startDate.setValue(lastEntry.getEnd().toLocalDate());
-        startTime.setValue(lastEntry.getEnd().toLocalTime());
+        if (lastEntry != null) start.setValue(lastEntry.getEnd());
     }
 
     private void nowStart() {
-        startDate.setValue(LocalDate.now());
-        startTime.setValue(LocalTime.now());
+        start.setValue(LocalDateTime.now());
     }
 
-    private void plusMinutes(final int minutes) {
-        LocalDateTime target;
-        if (endDate.getValue() != null && endTime.getValue() != null)
-            target = LocalDateTime.of(endDate.getValue(), endTime.getValue());
-        else if (startDate.getValue() != null && startTime.getValue() != null)
-            target = LocalDateTime.of(startDate.getValue(), startTime.getValue());
+    private void plusMinutes(final int minutes, final LocalDateTime reference) {
+        LocalDateTime relativeTo;
+        if (end.getValue() != null) relativeTo = end.getValue();
+        else if (reference != null) relativeTo = reference;
         else return;
-        target = target.plus(minutes, ChronoUnit.MINUTES);
-        endDate.setValue(target.toLocalDate());
-        endTime.setValue(target.toLocalTime());
+        end.setValue(relativeTo.plus(minutes, ChronoUnit.MINUTES));
     }
 
     private void nowEnd() {
-        endDate.setValue(LocalDate.now());
-        endTime.setValue(LocalTime.now());
+        end.setValue(LocalDateTime.now());
     }
 
-    private void clear() {
-        endTime.setValue(null);
+    private void clearEnd() {
+        end.setValue(null);
     }
 
     @Override
@@ -122,8 +96,8 @@ public final class LogEntryDialog extends ObjectDialog<LogEntry> {
         final LogEntry logEntry = LogEntry.FACTORY.createNew(
                 activity.getValue(),
                 what.getText(),
-                LocalDateTime.of(startDate.getValue(), startTime.getValue()),
-                endTime.getValue() == null || endDate.getValue() == null ? null : LocalDateTime.of(endDate.getValue(), endTime.getValue()),
+                start.getValue(),
+                end.getValue(),
                 meansOfTransport.getValue()
         );
         people.associateAll(logEntry);
@@ -134,8 +108,8 @@ public final class LogEntryDialog extends ObjectDialog<LogEntry> {
     protected boolean save() {
         editedObject.setActivity(activity.getValue());
         editedObject.setWhat(what.getText());
-        editedObject.setStart(LocalDateTime.of(startDate.getValue(), startTime.getValue()));
-        editedObject.setEnd(endTime.getValue() == null ? null : LocalDateTime.of(endDate.getValue(), endTime.getValue()));
+        editedObject.setStart(start.getValue());
+        editedObject.setEnd(end.getValue());
         editedObject.setMeansOfTransport(meansOfTransport.getValue());
         return LogEntry.FACTORY.update(editedObject);
     }
