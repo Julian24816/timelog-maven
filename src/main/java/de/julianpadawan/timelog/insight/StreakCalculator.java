@@ -43,7 +43,7 @@ public abstract class StreakCalculator {
                 + "|" + MonthStreakCalculator.PATTERN;
     }
 
-    public void init(LocalDate reference) {
+    public final void init(LocalDate reference) {
         preInit(reference);
         Database.execute(LogEntry.LogEntryFactory.TABLE_DEFINITION.getBaseSelectSQL() + " WHERE end < ? AND NOT end IS NULL ORDER BY end DESC", statement -> {
             statement.setTimestamp(1, Timestamp.valueOf(reference.plusDays(1).atTime(Preferences.getTime("StartOfDay"))));
@@ -51,8 +51,7 @@ public abstract class StreakCalculator {
                 final ResultView view = new ResultView(resultSet);
                 while (resultSet.next()) {
                     LogEntry entry = LogEntry.LogEntryFactory.getFromResultView(view);
-                    if (instanceOfActivity(entry.getActivity()) &&
-                            (person == null || QualityTime.FACTORY.exists(entry, person)))
+                    if (isRelevant(entry))
                         if (!accept(entry)) break;
                 }
             }
@@ -73,7 +72,19 @@ public abstract class StreakCalculator {
 
     protected abstract void postInit();
 
-    public StringProperty streakProperty() {
+    private boolean isRelevant(LogEntry newEntry) {
+        return instanceOfActivity(newEntry.getActivity()) &&
+                (person == null || QualityTime.FACTORY.exists(newEntry, person));
+    }
+
+    public final void acceptNew(LogEntry newEntry) {
+        if (isRelevant(newEntry))
+            acceptNewInternal(newEntry);
+    }
+
+    protected abstract void acceptNewInternal(LogEntry newEntry);
+
+    public final StringProperty streakProperty() {
         return streak;
     }
 
@@ -81,7 +92,7 @@ public abstract class StreakCalculator {
         return streak.get();
     }
 
-    protected void setStreak(String value) {
+    protected final void setStreak(String value) {
         streak.setValue(value);
     }
 }

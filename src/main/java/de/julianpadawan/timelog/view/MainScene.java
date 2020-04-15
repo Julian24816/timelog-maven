@@ -32,8 +32,10 @@ public class MainScene extends Scene {
         goals.getGoals().addAll(Goal.FACTORY.getAll());
 
         final CurrentEntryDisplay currentEntryDisplay = new CurrentEntryDisplay(logEntry -> {
-            if (logEntry.getEnd().isAfter(LocalDate.now().atTime(Preferences.getTime("StartOfDay"))))
+            if (logEntry.getEnd().isAfter(LocalDate.now().atTime(Preferences.getTime("StartOfDay")))) {
                 logEntryList.getEntries().add(logEntry);
+                goals.acceptEntry(logEntry);
+            }
         });
 
         final BorderPane borderPane = (BorderPane) getRoot();
@@ -70,6 +72,7 @@ public class MainScene extends Scene {
                 new Menu("Tools", null,
                         editAllMenuItem(),
                         reloadMenuItem(),
+                        reloadGoalsMenuItem(),
                         refreshCanvasMenuItem(),
                         preferencesMenuItem()
                 )
@@ -135,6 +138,10 @@ public class MainScene extends Scene {
 
     private MenuItem reloadMenuItem() {
         return getMenuItem("Reload List", this::reloadList);
+    }
+
+    private MenuItem reloadGoalsMenuItem() {
+        return getMenuItem("Reload Goals", goals::reload);
     }
 
     private MenuItem refreshCanvasMenuItem() {

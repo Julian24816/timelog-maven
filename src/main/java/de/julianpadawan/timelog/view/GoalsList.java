@@ -6,6 +6,7 @@ import de.julianpadawan.common.customFX.Util;
 import de.julianpadawan.timelog.insight.StreakCalculator;
 import de.julianpadawan.timelog.model.Activity;
 import de.julianpadawan.timelog.model.Goal;
+import de.julianpadawan.timelog.model.LogEntry;
 import de.julianpadawan.timelog.view.edit.GoalDialog;
 import javafx.beans.Observable;
 import javafx.collections.FXCollections;
@@ -70,6 +71,18 @@ public class GoalsList extends VBox {
         return goals;
     }
 
+    public void reload() {
+        getChildren().forEach(node -> {
+            if (node instanceof GoalLine) ((GoalLine) node).load(null);
+        });
+    }
+
+    public void acceptEntry(LogEntry newEntry) {
+        getChildren().forEach(node -> {
+            if (node instanceof GoalLine) ((GoalLine) node).accept(newEntry);
+        });
+    }
+
     private static class GoalLine extends HBox {
         private final Goal goal;
         private final Text streak = new Text();
@@ -110,6 +123,11 @@ public class GoalsList extends VBox {
             calculator = StreakCalculator.of(goal);
             calculator.init(LocalDate.now());
             streak.textProperty().bind(calculator.streakProperty());
+        }
+
+        private void accept(LogEntry newEntry) {
+            if (calculator == null) load(null);
+            calculator.acceptNew(newEntry);
         }
 
         @Override

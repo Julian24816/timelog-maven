@@ -39,22 +39,21 @@ public abstract class DurationAccumulatingStreakCalculator extends StreakCalcula
     @Override
     protected final boolean accept(LogEntry entry) {
         final LocalDate date = toFirstOfInterval(getDate(entry.getEnd()));
+        if (isTooLongAgo(date)) return false;
         if (!accumulate(date, Duration.between(entry.getStart(), entry.getEnd()))) return true;
         if (latest == null) latest = earliest = date;
-
-        final long daysBefore = date.until(earliest, ChronoUnit.DAYS);
-        if (daysBefore < 0) throw new IllegalStateException();
-        if (daysBefore == 0) return true;
-        if (daysBefore <= interval) {
-            earliest = date;
-            return true;
-        }
-        return false;
+        earliest = date;
+        return true;
     }
 
     private LocalDate getDate(LocalDateTime time) {
         if (!time.toLocalTime().isBefore(Preferences.getTime("StartOfDay"))) return time.toLocalDate();
         return time.toLocalDate().minusDays(1);
+    }
+
+    private boolean isTooLongAgo(LocalDate date) {
+        return latest == null && date.until(reference, ChronoUnit.DAYS) > interval
+                || earliest != null && date.until(earliest, ChronoUnit.DAYS) > interval;
     }
 
     private boolean accumulate(LocalDate date, Duration duration) {
@@ -84,4 +83,21 @@ public abstract class DurationAccumulatingStreakCalculator extends StreakCalcula
     }
 
     protected abstract String formatStreakDays(long streakDurationDays);
+
+    @Override
+    protected final void acceptNewInternal(LogEntry newEntry) {
+        final LocalDate date = toFirstOfInterval(getDate(newEntry.getEnd()));
+        if (!reference.equals(date)) {
+            if (latest == null || latest.until(date, ChronoUnit.DAYS) > interval) {
+                earliest = latest = null;
+                reference = date;
+            }
+        }
+        referenceDateDuration = referenceDateDuration.plus(Duration.between(newEntry.getStart(), newEntry.getEnd()));
+        if (referenceDateDuration.compareTo(minDuration) >= 0) {
+            if (latest == null) earliest = latest = date;
+            latest = date;
+        }
+        postInit();
+    }
 }
