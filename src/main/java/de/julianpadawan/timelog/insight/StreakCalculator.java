@@ -26,15 +26,21 @@ public abstract class StreakCalculator {
             return new DayStreakCalculator(goal);
         if (goal.getInterval().matches(WeekStreakCalculator.PATTERN))
             return new WeekStreakCalculator(goal);
+        if (goal.getInterval().matches(MonthStreakCalculator.PATTERN))
+            return new MonthStreakCalculator(goal);
         throw new IllegalArgumentException("unknown interval");
     }
 
     public static boolean validInterval(String interval) {
-        return interval.matches(DayStreakCalculator.PATTERN) || interval.matches(WeekStreakCalculator.PATTERN);
+        return interval.matches(DayStreakCalculator.PATTERN)
+                || interval.matches(WeekStreakCalculator.PATTERN)
+                || interval.matches(MonthStreakCalculator.PATTERN);
     }
 
     public static String getPrompt() {
-        return DayStreakCalculator.PATTERN + "|" + WeekStreakCalculator.PATTERN;
+        return DayStreakCalculator.PATTERN
+                + "|" + WeekStreakCalculator.PATTERN
+                + "|" + MonthStreakCalculator.PATTERN;
     }
 
     public void init(LocalDate reference) {
