@@ -18,7 +18,7 @@ import javafx.scene.paint.Color;
 import java.util.Comparator;
 import java.util.function.Function;
 
-public class AllActivitiesDialog extends Alert {
+public final class AllActivitiesDialog extends Alert {
     private final TableView<Activity> table = new TableView<>();
 
     public AllActivitiesDialog() {

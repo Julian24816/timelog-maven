@@ -7,7 +7,7 @@ import de.julianpadawan.timelog.preferences.PreferenceMap;
 import javafx.beans.binding.BooleanExpression;
 import javafx.scene.control.*;
 
-public class PreferencesDialog extends Dialog<ButtonType> {
+public final class PreferencesDialog extends Dialog<ButtonType> {
 
     private final BooleanExpression okEnabled;
 

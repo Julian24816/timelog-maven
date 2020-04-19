@@ -13,7 +13,7 @@ import javafx.scene.control.TextField;
 import java.time.Duration;
 
 
-public class GoalDialog extends ObjectDialog<Goal> {
+public final class GoalDialog extends ObjectDialog<Goal> {
     private final CreatingChoiceBox<Activity> activity;
     private final TextField interval;
     private final DurationMinutesTextField minDuration;

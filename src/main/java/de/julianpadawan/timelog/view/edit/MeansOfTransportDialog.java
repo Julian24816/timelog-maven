@@ -4,7 +4,7 @@ import de.julianpadawan.common.customFX.ObjectDialog;
 import de.julianpadawan.timelog.model.MeansOfTransport;
 import javafx.scene.control.TextField;
 
-class MeansOfTransportDialog extends ObjectDialog<MeansOfTransport> {
+final class MeansOfTransportDialog extends ObjectDialog<MeansOfTransport> {
     private final TextField name;
 
     public MeansOfTransportDialog() {

@@ -4,7 +4,7 @@ import de.julianpadawan.common.customFX.ObjectDialog;
 import de.julianpadawan.timelog.model.Person;
 import javafx.scene.control.TextField;
 
-class PersonDialog extends ObjectDialog<Person> {
+final class PersonDialog extends ObjectDialog<Person> {
     private final TextField name;
 
     public PersonDialog() {
