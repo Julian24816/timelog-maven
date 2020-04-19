@@ -7,7 +7,9 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 public class DateTimePicker extends HBox {
     private final DatePicker date = new DatePicker();
@@ -29,6 +31,12 @@ public class DateTimePicker extends HBox {
         time.valueProperty().addListener(this::invalidated);
     }
 
+    public DateTimePicker(LocalDate date, LocalTime time) {
+        this();
+        setDate(date);
+        setTime(time);
+    }
+
     private void invalidated(Observable observable) {
         if (date.getValue() == null || time.getValue() == null) value.set(null);
         else value.set(LocalDateTime.of(date.getValue(), time.getValue()));
@@ -42,7 +50,16 @@ public class DateTimePicker extends HBox {
         return value.get();
     }
 
+    public void setDate(LocalDate value) {
+        date.setValue(value);
+    }
+
+    public void setTime(LocalTime value) {
+        time.setValue(value);
+    }
+
     public void setValue(LocalDateTime value) {
+        if (getValue() == null && value == null) return;
         date.setValue(value == null ? null : value.toLocalDate());
         time.setValue(value == null ? null : value.toLocalTime());
     }

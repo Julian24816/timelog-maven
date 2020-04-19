@@ -5,6 +5,7 @@ import de.julianpadawan.timelog.model.*;
 import javafx.beans.binding.BooleanBinding;
 import javafx.scene.control.TextField;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
@@ -34,7 +35,7 @@ public final class LogEntryDialog extends ObjectDialog<LogEntry> {
 
         start = gridPane2C.addRow("Start", new DateTimePicker(LocalDateTime.now()));
         gridPane2C.addButtonRow(Util.button("After Previous", this::afterPrevious), Util.button("Now", this::nowStart));
-        end = gridPane2C.addRow("End", new DateTimePicker());
+        end = gridPane2C.addRow("End", new DateTimePicker(LocalDate.now(), null));
         gridPane2C.addButtonRow(
                 Util.button("-10 min", () -> plusMinutes(-10, LocalDateTime.now())),
                 Util.button("-1 min", () -> plusMinutes(-1, LocalDateTime.now())),
