@@ -146,6 +146,7 @@ public final class Activity extends ModelObject<Activity> {
 
     public static final class ActivityFactory extends ModelFactory<Activity> {
         private final Map<Integer, Activity> activityMap = new HashMap<>();
+        private boolean loaded;
 
         private ActivityFactory() {
             super(view -> new Activity(
@@ -181,7 +182,10 @@ public final class Activity extends ModelObject<Activity> {
 
         @Override
         public Collection<Activity> getAll() {
-            super.getAll().forEach(this::putActivity);
+            if (!loaded) {
+                loaded = true;
+                super.getAll().forEach(this::putActivity);
+            }
             return activityMap.values();
         }
 
