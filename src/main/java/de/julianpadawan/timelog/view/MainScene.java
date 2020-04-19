@@ -4,6 +4,7 @@ import de.julianpadawan.common.customFX.DatePickerDialog;
 import de.julianpadawan.timelog.model.Goal;
 import de.julianpadawan.timelog.model.LogEntry;
 import de.julianpadawan.timelog.preferences.Preferences;
+import de.julianpadawan.timelog.view.edit.AllActivitiesDialog;
 import de.julianpadawan.timelog.view.edit.LogEntryDialog;
 import de.julianpadawan.timelog.view.edit.PreferencesDialog;
 import de.julianpadawan.timelog.view.insight.LookAtDayDialog;
@@ -50,6 +51,15 @@ public class MainScene extends Scene {
 
     private MenuBar getMenuBar() {
         return new MenuBar(
+                new Menu("LookAt", null,
+                        lookAtYesterdayMenuItem(),
+                        lookAtCertainDayMenuItem(),
+                        new SeparatorMenuItem(),
+                        lootAtLast4DaysMenuItem(),
+                        lookAtCurrentWeekMenuItem(),
+                        lookAtLastWeekMenuItem(),
+                        lookAtCertainTimeSpanMenuItem()
+                ),
                 new Menu("Report", null,
                         reportMenuItem("Today", Report::today),
                         reportMenuItem("Yesterday", Report::yesterday),
@@ -60,40 +70,15 @@ public class MainScene extends Scene {
                         reportMenuItem("Previous Week", Report::previousWeek),
                         certainTimeSpanReportMenuItem()
                 ),
-                new Menu("LookAt", null,
-                        lookAtYesterdayMenuItem(),
-                        lookAtCertainDayMenuItem(),
-                        new SeparatorMenuItem(),
-                        lootAtLast4DaysMenuItem(),
-                        lookAtCurrentWeekMenuItem(),
-                        lookAtLastWeekMenuItem(),
-                        lookAtCertainTimeSpanMenuItem()
-                ),
                 new Menu("Tools", null,
                         editAllMenuItem(),
+                        editActivitiesMenuItem(),
                         reloadMenuItem(),
                         reloadGoalsMenuItem(),
                         refreshCanvasMenuItem(),
                         preferencesMenuItem()
                 )
         );
-    }
-
-    private MenuItem reportMenuItem(final String label, final Supplier<Report> report) {
-        return getMenuItem(label, () -> report.get().show());
-    }
-
-    private MenuItem certainDayReportMenuItem() {
-        return getMenuItem("For Day ...",
-                () -> DatePickerDialog.before(LocalDate.now().minus(1, ChronoUnit.DAYS))
-                        .showAndWait().map(Report::on).ifPresent(Dialog::show));
-    }
-
-    private MenuItem certainTimeSpanReportMenuItem() {
-        return getMenuItem("From ... To ...",
-                () -> DatePickerDialog.before("From", LocalDate.now())
-                        .showAndWait().ifPresent(fromDate -> DatePickerDialog.between("To", fromDate, LocalDate.now().plus(1, ChronoUnit.DAYS))
-                                .showAndWait().ifPresent(toDate -> Report.between(fromDate, toDate).show())));
     }
 
     private MenuItem lookAtYesterdayMenuItem() {
@@ -131,9 +116,30 @@ public class MainScene extends Scene {
                                 .ifPresent(to -> new LookAtDaysDialog(from, to).show())));
     }
 
+    private MenuItem reportMenuItem(final String label, final Supplier<Report> report) {
+        return getMenuItem(label, () -> report.get().show());
+    }
+
+    private MenuItem certainDayReportMenuItem() {
+        return getMenuItem("For Day ...",
+                () -> DatePickerDialog.before(LocalDate.now().minus(1, ChronoUnit.DAYS))
+                        .showAndWait().map(Report::on).ifPresent(Dialog::show));
+    }
+
+    private MenuItem certainTimeSpanReportMenuItem() {
+        return getMenuItem("From ... To ...",
+                () -> DatePickerDialog.before("From", LocalDate.now())
+                        .showAndWait().ifPresent(fromDate -> DatePickerDialog.between("To", fromDate, LocalDate.now().plus(1, ChronoUnit.DAYS))
+                                .showAndWait().ifPresent(toDate -> Report.between(fromDate, toDate).show())));
+    }
+
     private MenuItem editAllMenuItem() {
         return getMenuItem("Edit All Entries",
                 () -> LogEntry.FACTORY.getAll().forEach(logEntry -> new LogEntryDialog(logEntry).showAndWait()));
+    }
+
+    private MenuItem editActivitiesMenuItem() {
+        return getMenuItem("Edit Activities", () -> new AllActivitiesDialog().show());
     }
 
     private MenuItem reloadMenuItem() {

@@ -1,5 +1,7 @@
 package de.julianpadawan.common.db;
 
+import javafx.beans.property.ReadOnlyIntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ObservableStringValue;
 
 import java.util.Objects;
@@ -10,12 +12,6 @@ public abstract class ModelObject<T extends ModelObject<?>> implements Comparabl
     protected ModelObject(int id) {
         this.id = id;
     }
-
-    public final String getDisplayName() {
-        return displayNameProperty().get();
-    }
-
-    public abstract ObservableStringValue displayNameProperty();
 
     @Override
     public abstract String toString();
@@ -38,8 +34,18 @@ public abstract class ModelObject<T extends ModelObject<?>> implements Comparabl
         return id;
     }
 
+    public final ReadOnlyIntegerProperty idProperty() {
+        return new SimpleIntegerProperty(this, "id", id);
+    }
+
     @Override
     public int compareTo(T o) {
         return getDisplayName().compareTo(o.getDisplayName());
     }
+
+    public final String getDisplayName() {
+        return displayNameProperty().get();
+    }
+
+    public abstract ObservableStringValue displayNameProperty();
 }
