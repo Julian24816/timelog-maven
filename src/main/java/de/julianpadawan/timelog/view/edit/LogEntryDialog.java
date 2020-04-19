@@ -114,4 +114,8 @@ public final class LogEntryDialog extends ObjectDialog<LogEntry> {
         editedObject.setMeansOfTransport(meansOfTransport.getValue());
         return LogEntry.FACTORY.update(editedObject);
     }
+
+    public void setEnd(LocalDateTime value) {
+        end.setValue(value);
+    }
 }

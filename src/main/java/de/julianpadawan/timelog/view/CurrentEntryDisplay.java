@@ -69,18 +69,18 @@ public class CurrentEntryDisplay extends GridPane {
                         }
                     }
                 }, 0, 500);
-                button.setText("Edit");
+                button.setText("Stop");
                 transport.bind(CustomBindings.select(getValue().meansOfTransportProperty(), MeansOfTransport::nameProperty));
                 what.bind(getValue().whatProperty());
             }
         }
     };
 
-    private final Consumer<LogEntry> newCompleteEntry;
+    private final Consumer<LogEntry> newCompleteEntryCallback;
 
-    public CurrentEntryDisplay(Consumer<LogEntry> newCompleteEntry) {
+    public CurrentEntryDisplay(Consumer<LogEntry> newCompleteEntryCallback) {
         super();
-        this.newCompleteEntry = newCompleteEntry;
+        this.newCompleteEntryCallback = newCompleteEntryCallback;
 
         entry.setValue(LogEntry.FACTORY.getUnfinishedEntry());
         button.setOnAction(this::onButtonPress);
@@ -89,24 +89,15 @@ public class CurrentEntryDisplay extends GridPane {
         createLayout();
     }
 
-    private void doubleClick(MouseEvent mouseEvent) {
-        if (mouseEvent.getClickCount() != 2 || !mouseEvent.getButton().equals(MouseButton.PRIMARY)) return;
-        onButtonPress(null);
+    private void onButtonPress(ActionEvent event) {
+        if (entry.get() == null) newEntry();
+        else stopEntry();
     }
 
-    private void onButtonPress(ActionEvent event) {
-        if (entry.get() == null) {
-            new LogEntryDialog().showAndWait().ifPresent(value -> {
-                if (value.getEnd() == null) entry.setValue(value);
-                else newCompleteEntry.accept(value);
-            });
-        } else {
-            new LogEntryDialog(entry.get()).showAndWait();
-            if (entry.get().getEnd() != null) {
-                newCompleteEntry.accept(entry.get());
-                entry.set(LogEntry.FACTORY.getUnfinishedEntry());
-            }
-        }
+    private void doubleClick(MouseEvent mouseEvent) {
+        if (mouseEvent.getClickCount() != 2 || !mouseEvent.getButton().equals(MouseButton.PRIMARY)) return;
+        if (entry.get() == null) newEntry();
+        else editEntry();
     }
 
     private void createLayout() {
@@ -130,5 +121,29 @@ public class CurrentEntryDisplay extends GridPane {
         final ColumnConstraints growColumn = new ColumnConstraints();
         growColumn.setHgrow(Priority.ALWAYS);
         getColumnConstraints().add(growColumn);
+    }
+
+    private void newEntry() {
+        showDialogAndHandleComplete(new LogEntryDialog());
+    }
+
+    private void editEntry() {
+        showDialogAndHandleComplete(new LogEntryDialog(entry.get()));
+    }
+
+    private void stopEntry() {
+        final LogEntryDialog logEntryDialog = new LogEntryDialog(entry.get());
+        logEntryDialog.setEnd(LocalDateTime.now());
+        showDialogAndHandleComplete(logEntryDialog);
+    }
+
+    private void showDialogAndHandleComplete(LogEntryDialog logEntryDialog) {
+        logEntryDialog.showAndWait().ifPresent(entry -> {
+            if (entry.getEnd() == null) this.entry.setValue(entry);
+            else {
+                newCompleteEntryCallback.accept(entry);
+                this.entry.set(LogEntry.FACTORY.getUnfinishedEntry());
+            }
+        });
     }
 }
