@@ -4,10 +4,7 @@ import de.julianpadawan.common.customFX.CustomBindings;
 import de.julianpadawan.common.customFX.Util;
 import de.julianpadawan.timelog.model.Activity;
 import javafx.beans.value.ObservableValue;
-import javafx.scene.control.Alert;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -27,18 +24,20 @@ public final class AllActivitiesDialog extends Alert {
         setHeaderText("Edit All Activities");
         setResizable(true);
 
+        final Button newButton = Util.button("New", () ->
+                new ActivityDialog().showAndWait().ifPresent(activity -> {
+                    table.getItems().add(activity);
+                    table.getItems().sort(Comparator.naturalOrder());
+                })
+        );
+
         addColumn("ID", Activity::idProperty, 30, false);
         addColumn("name", Activity::displayNameProperty, 100, true);
         table.getItems().addAll(Activity.FACTORY.getAll());
         table.getItems().sort(Comparator.naturalOrder());
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         table.setSelectionModel(null);
-        getDialogPane().setContent(new VBox(10, table, Util.button("New", () ->
-                new ActivityDialog().showAndWait().ifPresent(activity -> {
-                    table.getItems().add(activity);
-                    table.getItems().sort(Comparator.naturalOrder());
-                })
-        )));
+        getDialogPane().setContent(new VBox(10, table, newButton));
         VBox.setVgrow(table, Priority.ALWAYS);
     }
 
