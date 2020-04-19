@@ -94,7 +94,9 @@ public class CreatingChoiceBox<T extends ModelObject<T>> extends HBox {
     }
 
     private void showEditDialog() {
-        editDialog.apply(choiceBox.getValue().content).show();
+        editDialog.apply(choiceBox.getValue().content).showAndWait().ifPresent(edited ->
+                FXCollections.sort(choiceBox.getItems())
+        );
     }
 
     private void bindSelectedToEnabled(Button button) {

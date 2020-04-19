@@ -1,8 +1,11 @@
 package de.julianpadawan.common.customFX;
 
 import javafx.beans.binding.*;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableIntegerValue;
 import javafx.beans.value.ObservableStringValue;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.TextField;
@@ -66,6 +69,15 @@ public final class CustomBindings {
                 return first.get() + additional;
             }
         };
+    }
+
+    public static <P> IntegerExpression selectInt(ObservableValue<P> observableValue, Function<P, ObservableIntegerValue> select) {
+        IntegerProperty property = new SimpleIntegerProperty();
+        Runnable bindToCurrentValue = () ->
+                Optional.ofNullable(observableValue.getValue()).map(select).ifPresentOrElse(property::bind, property::unbind);
+        bindToCurrentValue.run();
+        observableValue.addListener(observable -> bindToCurrentValue.run());
+        return property;
     }
 
     public static <P, I, R> ObjectExpression<R> select(ObservableValue<P> observableValue,
