@@ -41,6 +41,10 @@ public final class Activity extends ModelObject<Activity> {
         this.color.setValue(Objects.requireNonNull(color));
     }
 
+    public static Activity getRoot() {
+        return Activity.FACTORY.getForId(0);
+    }
+
     public int getDepth() {
         if (getId() == 0) return 0;
         if (parentId.get() == 0) return 1;
@@ -113,6 +117,12 @@ public final class Activity extends ModelObject<Activity> {
         if (getId() == 0) return;
         if (getId() == parent.getId()) throw new IllegalArgumentException("activity can't be parent of itself");
         parentId.setValue(Objects.requireNonNull(parent).getId());
+    }
+
+    public boolean instanceOf(Activity activity) {
+        if (activity.equals(this)) return true;
+        if (getDepth() < activity.getDepth()) return false;
+        return getParent().instanceOf(activity);
     }
 
     public static final class ActivityFactory extends ModelFactory<Activity> {

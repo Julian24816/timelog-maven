@@ -24,7 +24,7 @@ public final class LogEntryDialog extends ObjectDialog<LogEntry> {
 
         activity = gridPane2C.addRow("Type", CreatingChoiceBox.simple(
                 Activity.FACTORY.getAll(), ActivityDialog::new, ActivityDialog::new));
-        activity.setValue(Activity.FACTORY.getForId(0));
+        activity.setValue(Activity.getRoot());
         meansOfTransport = gridPane2C.addRow("Transport", CreatingChoiceBox.nullable(
                 MeansOfTransport.FACTORY.getAll(), MeansOfTransportDialog::new, MeansOfTransportDialog::new));
         people = gridPane2C.addRow("People", new AssociationFlowPane<>(

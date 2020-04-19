@@ -7,6 +7,7 @@ import javafx.scene.control.ColorPicker;
 import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 public final class ActivityDialog extends ObjectDialog<Activity> {
@@ -21,10 +22,11 @@ public final class ActivityDialog extends ObjectDialog<Activity> {
     public ActivityDialog(Activity editedObject) {
         super("Activity", editedObject);
 
-        final Collection<Activity> all = Activity.FACTORY.getAll();
-        if (editedObject != null) all.remove(editedObject);
-        parent = gridPane2C.addRow("Parent", CreatingChoiceBox.simple(all));
-        parent.setValue(Activity.FACTORY.getForId(0));
+        final Collection<Activity> all = Activity.FACTORY.getAll(), filtered = new ArrayList<>(all);
+        if (editedObject != null)
+            all.stream().filter(activity -> activity.instanceOf(editedObject)).forEach(filtered::remove);
+        parent = gridPane2C.addRow("Parent", CreatingChoiceBox.simple(filtered));
+        parent.setValue(Activity.getRoot());
 
         name = gridPane2C.addRow("Name", new TextField());
         name.setPromptText("enter name");
@@ -40,6 +42,7 @@ public final class ActivityDialog extends ObjectDialog<Activity> {
             parent.setValue(editedObject.getParent());
             name.setText(editedObject.getName());
             color.setValue(Color.valueOf(editedObject.getColor()));
+            if (editedObject.equals(Activity.getRoot())) parent.setDisable(true);
         } else {
             parent.valueProperty().addListener(observable -> {
                 if (parent.getValue() != null) color.setValue(Color.valueOf(parent.getValue().getColor()));

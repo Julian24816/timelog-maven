@@ -13,7 +13,7 @@ public final class ActivityStatistic extends Statistic<Activity, Duration> {
     }
 
     public static ActivityStatistic of(Collection<LogEntry> entries) {
-        final ActivityStatistic statistic = new ActivityStatistic(Activity.FACTORY.getForId(0));
+        final ActivityStatistic statistic = new ActivityStatistic(Activity.getRoot());
         entries.forEach(logEntry -> statistic.add(logEntry.getActivity(), DurationDatum.of(logEntry)));
         return statistic;
     }

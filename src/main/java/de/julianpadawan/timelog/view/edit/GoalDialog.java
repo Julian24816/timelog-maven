@@ -28,7 +28,7 @@ public class GoalDialog extends ObjectDialog<Goal> {
 
         activity = gridPane2C.addRow("Activity",
                 CreatingChoiceBox.simple(Activity.FACTORY.getAll(), ActivityDialog::new, ActivityDialog::new));
-        activity.setValue(Activity.FACTORY.getForId(0));
+        activity.setValue(Activity.getRoot());
 
         interval = gridPane2C.addRow("Interval", new TextField());
         interval.setPromptText(StreakCalculator.getPrompt());

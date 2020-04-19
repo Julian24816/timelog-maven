@@ -60,12 +60,6 @@ public abstract class StreakCalculator {
         postInit();
     }
 
-    private boolean instanceOfActivity(Activity entryActivity) {
-        if (entryActivity.getDepth() < activity.getDepth()) return false;
-        if (entryActivity.equals(activity)) return true;
-        return instanceOfActivity(entryActivity.getParent());
-    }
-
     protected abstract void preInit(LocalDate reference);
 
     protected abstract boolean accept(LogEntry entry);
@@ -73,7 +67,7 @@ public abstract class StreakCalculator {
     protected abstract void postInit();
 
     private boolean isRelevant(LogEntry newEntry) {
-        return instanceOfActivity(newEntry.getActivity()) &&
+        return newEntry.getActivity().instanceOf(activity) &&
                 (person == null || QualityTime.FACTORY.exists(newEntry, person));
     }
 
