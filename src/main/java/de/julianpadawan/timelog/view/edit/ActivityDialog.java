@@ -50,6 +50,12 @@ public final class ActivityDialog extends ObjectDialog<Activity> {
         }
     }
 
+    public static ActivityDialog forParent(Activity activity) {
+        final ActivityDialog activityDialog = new ActivityDialog();
+        activityDialog.parent.setValue(activity);
+        return activityDialog;
+    }
+
     @Override
     protected Activity createNew() {
         return Activity.FACTORY.createNew(

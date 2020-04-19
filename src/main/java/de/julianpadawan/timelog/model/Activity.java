@@ -10,10 +10,7 @@ import javafx.beans.value.ObservableStringValue;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public final class Activity extends ModelObject<Activity> {
     public static final String DEFAULT_COLOR = "#DDD";
@@ -202,5 +199,15 @@ public final class Activity extends ModelObject<Activity> {
             return super.update(obj);
         }
 
+        public Collection<Activity> getAllChildren(Activity parent) {
+            return Database.execute("SELECT id FROM activity WHERE parent = ?", statement -> {
+                statement.setInt(1, parent.getId());
+                try (final ResultSet resultSet = statement.executeQuery()) {
+                    List<Activity> result = new LinkedList<>();
+                    while (resultSet.next()) result.add(getForId(resultSet.getInt(1)));
+                    return result;
+                }
+            }, Collections.emptyList());
+        }
     }
 }

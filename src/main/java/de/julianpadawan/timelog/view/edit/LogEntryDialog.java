@@ -16,8 +16,9 @@ public final class LogEntryDialog extends ObjectDialog<LogEntry> {
     private final AssociationFlowPane<LogEntry, Person, QualityTime> people;
     private final DateTimePicker start, end;
 
-    public LogEntryDialog() {
-        this(null);
+    public LogEntryDialog(LogEntry logEntry, LocalDateTime endTime) {
+        this(logEntry);
+        end.setValue(endTime);
     }
 
     public LogEntryDialog(LogEntry editedObject) {
@@ -65,6 +66,15 @@ public final class LogEntryDialog extends ObjectDialog<LogEntry> {
             start.setValue(editedObject.getStart());
             end.setValue(editedObject.getEnd());
         }
+    }
+
+    public LogEntryDialog(Activity activity) {
+        this();
+        this.activity.setValue(activity);
+    }
+
+    public LogEntryDialog() {
+        this((LogEntry) null);
     }
 
     private void afterPrevious() {
@@ -115,7 +125,4 @@ public final class LogEntryDialog extends ObjectDialog<LogEntry> {
         return LogEntry.FACTORY.update(editedObject);
     }
 
-    public void setEnd(LocalDateTime value) {
-        end.setValue(value);
-    }
 }

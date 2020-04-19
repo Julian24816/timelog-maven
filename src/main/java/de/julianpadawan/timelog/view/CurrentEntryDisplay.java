@@ -124,26 +124,23 @@ public class CurrentEntryDisplay extends GridPane {
     }
 
     private void newEntry() {
-        showDialogAndHandleComplete(new LogEntryDialog());
+        Activity activity = ChooseActivityDialog.choose(Activity.getRoot());
+        if (activity != null) new LogEntryDialog(activity).showAndWait().ifPresent(this::entryDialogResult);
+    }
+
+    private void entryDialogResult(LogEntry entry) {
+        if (entry.getEnd() == null) this.entry.setValue(entry);
+        else {
+            newCompleteEntryCallback.accept(entry);
+            this.entry.set(LogEntry.FACTORY.getUnfinishedEntry());
+        }
     }
 
     private void editEntry() {
-        showDialogAndHandleComplete(new LogEntryDialog(entry.get()));
+        new LogEntryDialog(entry.get()).showAndWait().ifPresent(this::entryDialogResult);
     }
 
     private void stopEntry() {
-        final LogEntryDialog logEntryDialog = new LogEntryDialog(entry.get());
-        logEntryDialog.setEnd(LocalDateTime.now());
-        showDialogAndHandleComplete(logEntryDialog);
-    }
-
-    private void showDialogAndHandleComplete(LogEntryDialog logEntryDialog) {
-        logEntryDialog.showAndWait().ifPresent(entry -> {
-            if (entry.getEnd() == null) this.entry.setValue(entry);
-            else {
-                newCompleteEntryCallback.accept(entry);
-                this.entry.set(LogEntry.FACTORY.getUnfinishedEntry());
-            }
-        });
+        new LogEntryDialog(entry.get(), LocalDateTime.now()).showAndWait().ifPresent(this::entryDialogResult);
     }
 }

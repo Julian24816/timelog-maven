@@ -20,6 +20,12 @@ public final class Util {
         });
     }
 
+    public static Button button(String label, String color, Runnable onAction) {
+        final Button button = button(label, onAction);
+        button.setStyle("-fx-base: " + color);
+        return button;
+    }
+
     public static Button button(String label, Runnable onAction) {
         final Button button = new Button(label);
         button.setOnAction(event -> {
