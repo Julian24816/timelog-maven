@@ -5,7 +5,9 @@ import de.julianpadawan.timelog.preferences.Preferences;
 import de.julianpadawan.timelog.view.LogEntryList;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.stage.Screen;
 
 import java.time.LocalDate;
@@ -31,7 +33,7 @@ public class LookAtDaysDialog extends Alert {
             final LocalDate date = from.plusDays(i);
             final LocalDateTime startOfDay = date.atTime(Preferences.getTime("StartOfDay"));
 
-            for (LogEntry logEntry : LogEntry.FACTORY.getAllFinishedOn(date)) {
+            for (LogEntry logEntry : LogEntry.FACTORY.getAllFinishedOnDateOf(LogEntry.toStartOfDay(date))) {
                 list.getChildren().add(new LogEntryList.ActivityLine(logEntry, startOfDay));
             }
 

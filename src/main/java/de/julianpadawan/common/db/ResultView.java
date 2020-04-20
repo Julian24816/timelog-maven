@@ -31,6 +31,10 @@ public final class ResultView {
         return resultSet.getInt(getIndex(key));
     }
 
+    public double getDouble(String key) throws SQLException {
+        return resultSet.getDouble(getIndex(key));
+    }
+
     public Duration getDuration(String key) throws SQLException {
         return Duration.ofMinutes(getLong(key));
     }

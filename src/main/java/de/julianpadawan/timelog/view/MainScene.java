@@ -1,7 +1,6 @@
 package de.julianpadawan.timelog.view;
 
 import de.julianpadawan.common.customFX.DatePickerDialog;
-import de.julianpadawan.timelog.model.Goal;
 import de.julianpadawan.timelog.model.LogEntry;
 import de.julianpadawan.timelog.preferences.Preferences;
 import de.julianpadawan.timelog.view.edit.AllActivitiesDialog;
@@ -17,6 +16,7 @@ import javafx.scene.layout.BorderPane;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.function.Supplier;
@@ -29,8 +29,7 @@ public class MainScene extends Scene {
     public MainScene() {
         super(new BorderPane());
 
-        logEntryList.getEntries().addAll(LogEntry.FACTORY.getAllFinishedOn(LocalDate.now()));
-        goals.getGoals().addAll(Goal.FACTORY.getAll());
+        logEntryList.getEntries().addAll(LogEntry.FACTORY.getAllFinishedOnDateOf(LocalDateTime.now()));
 
         final CurrentEntryDisplay currentEntryDisplay = new CurrentEntryDisplay(logEntry -> {
             if (logEntry.getEnd().isAfter(LocalDate.now().atTime(Preferences.getTime("StartOfDay")))) {
@@ -157,7 +156,7 @@ public class MainScene extends Scene {
     private MenuItem preferencesMenuItem() {
         return getMenuItem("Preferences",
                 () -> new PreferencesDialog().showAndWait()
-                        .filter(buttonType -> buttonType.equals(ButtonType.OK))
+                        .filter(buttonType -> buttonType.equals(PreferencesDialog.OK_BUTTON))
                         .ifPresent(ok -> App.restart(true)));
     }
 

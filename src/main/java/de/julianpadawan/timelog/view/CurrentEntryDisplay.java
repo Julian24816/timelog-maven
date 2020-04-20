@@ -12,7 +12,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.event.ActionEvent;
-import javafx.geometry.HPos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseButton;
@@ -115,10 +114,8 @@ public class CurrentEntryDisplay extends GridPane {
         add(new HBox(title, startTimeLabel, startTime, durationLabel, duration), 0, 0);
         add(new JoiningTextFlow(activityName, what, transport), 0, 1);
         add(button, 1, 0, 1, 2);
-
-        setHgap(10);
-        GridPane.setHalignment(duration, HPos.CENTER);
         button.setMaxHeight(Double.MAX_VALUE);
+        setHgap(10);
 
         final ColumnConstraints growColumn = new ColumnConstraints();
         growColumn.setHgrow(Priority.ALWAYS);

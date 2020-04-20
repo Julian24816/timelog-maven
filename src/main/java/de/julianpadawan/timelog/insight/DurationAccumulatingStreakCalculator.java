@@ -2,11 +2,9 @@ package de.julianpadawan.timelog.insight;
 
 import de.julianpadawan.timelog.model.Goal;
 import de.julianpadawan.timelog.model.LogEntry;
-import de.julianpadawan.timelog.preferences.Preferences;
 
 import java.time.Duration;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
 public abstract class DurationAccumulatingStreakCalculator extends StreakCalculator {
@@ -38,17 +36,12 @@ public abstract class DurationAccumulatingStreakCalculator extends StreakCalcula
 
     @Override
     protected final boolean accept(LogEntry entry) {
-        final LocalDate date = toFirstOfInterval(getDate(entry.getEnd()));
+        final LocalDate date = toFirstOfInterval(LogEntry.getDate(entry.getEnd()));
         if (isTooLongAgo(date)) return false;
         if (!accumulate(date, Duration.between(entry.getStart(), entry.getEnd()))) return true;
         if (latest == null) latest = earliest = date;
         earliest = date;
         return true;
-    }
-
-    private LocalDate getDate(LocalDateTime time) {
-        if (!time.toLocalTime().isBefore(Preferences.getTime("StartOfDay"))) return time.toLocalDate();
-        return time.toLocalDate().minusDays(1);
     }
 
     private boolean isTooLongAgo(LocalDate date) {
@@ -86,7 +79,7 @@ public abstract class DurationAccumulatingStreakCalculator extends StreakCalcula
 
     @Override
     protected final void acceptNewInternal(LogEntry newEntry) {
-        final LocalDate date = toFirstOfInterval(getDate(newEntry.getEnd()));
+        final LocalDate date = toFirstOfInterval(LogEntry.getDate(newEntry.getEnd()));
         if (!reference.equals(date)) {
             if (latest == null || latest.until(date, ChronoUnit.DAYS) > interval) {
                 earliest = latest = null;

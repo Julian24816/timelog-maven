@@ -11,6 +11,9 @@ public final class ColumnType<T> {
     public static final ColumnType<Integer> INTEGER = new ColumnType<>(
             PreparedStatement::setInt,
             param -> tryCast(Integer.class, param));
+    public static final ColumnType<Double> DOUBLE = new ColumnType<>(
+            PreparedStatement::setDouble,
+            param -> tryCast(Double.class, param));
     public static final ColumnType<String> STRING = new ColumnType<>(
             PreparedStatement::setString,
             param -> tryCast(String.class, param));

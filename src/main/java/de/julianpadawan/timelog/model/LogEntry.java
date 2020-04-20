@@ -125,6 +125,15 @@ public final class LogEntry extends ModelObject<LogEntry> {
         end.setValue(value);
     }
 
+    public static LocalDateTime toStartOfDay(LocalDate beginInclusive) {
+        return beginInclusive.atTime(Preferences.getTime("StartOfDay"));
+    }
+
+    public static LocalDate getDate(LocalDateTime time) {
+        if (!time.toLocalTime().isBefore(Preferences.getTime("StartOfDay"))) return time.toLocalDate();
+        return time.toLocalDate().minusDays(1);
+    }
+
     public static final class LogEntryFactory extends ModelFactory<LogEntry> {
 
         public static final ModelTableDefinition<LogEntry> TABLE_DEFINITION = new ModelTableDefinition<LogEntry>("log")
@@ -153,12 +162,15 @@ public final class LogEntry extends ModelObject<LogEntry> {
             return selectWhere(this::selectFirst, "end IS NULL", 0, null);
         }
 
-        public Collection<LogEntry> getAllFinishedOn(LocalDate date) {
+        public Collection<LogEntry> getAllFinishedOnDateOf(LocalDateTime reference) {
+            //TODO add second method with Date as parameter
+            LocalDate date = getDate(reference);
             return getAllFinishedBetween(date, date.plus(1, ChronoUnit.DAYS));
         }
 
         public Collection<LogEntry> getAllFinishedBetween(final LocalDate beginInclusive, final LocalDate endExclusive) {
-            return getAllFinishedBetween(beginInclusive.atTime(Preferences.getTime("StartOfDay")), endExclusive.atTime(Preferences.getTime("StartOfDay")));
+            //TODO remove this function
+            return getAllFinishedBetween(toStartOfDay(beginInclusive), toStartOfDay(endExclusive));
         }
 
         public Collection<LogEntry> getAllFinishedBetween(final LocalDateTime from, final LocalDateTime to) {

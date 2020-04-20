@@ -77,7 +77,7 @@ public class LogEntryList extends ScrollPane {
 
         setFitToWidth(true);
         setPrefHeight(500);
-        vBox.setPrefWidth(200);
+        vBox.setPrefWidth(250);
 
         entries.addListener(this::onListChanged);
     }

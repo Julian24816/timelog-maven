@@ -7,33 +7,54 @@ import de.julianpadawan.timelog.insight.StreakCalculator;
 import de.julianpadawan.timelog.model.Activity;
 import de.julianpadawan.timelog.model.Goal;
 import de.julianpadawan.timelog.model.LogEntry;
+import de.julianpadawan.timelog.model.QualityTime;
 import de.julianpadawan.timelog.view.edit.GoalDialog;
 import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
 public class GoalsList extends VBox {
     private final ObservableList<Goal> goals = FXCollections.observableArrayList();
+    private final Text pointsText = new Text("0");
+    private final Pane pane = new FlowPane(10, 10);
+    private double points = 0;
 
     public GoalsList() {
         super(10);
-        goals.addListener(this::onListChanged);
+        setAlignment(Pos.CENTER);
 
-        final Button newButton = Util.button("New", () -> new GoalDialog().showAndWait().ifPresent(goals::add));
-        newButton.setMaxWidth(Double.MAX_VALUE);
-        getChildren().add(newButton);
+        final Button newButton = Util.button("New Goal", () -> new GoalDialog().showAndWait().ifPresent(goals::add));
+        final HBox hBox = new HBox(10, pointsText, new Text("Points"), newButton);
+        pointsText.setFont(new Font(20));
+        hBox.setAlignment(Pos.BASELINE_CENTER);
+        getChildren().add(hBox);
+
+        pane.setPrefWidth(250);
+        final ScrollPane scrollPane = new ScrollPane(pane);
+        scrollPane.setFitToWidth(true);
+        getChildren().add(scrollPane);
+        setVgrow(scrollPane, Priority.ALWAYS);
+
+        goals.addListener(this::onListChanged);
+        goals.addAll(Goal.FACTORY.getAll());
+        calculatePoints();
     }
 
     private void onListChanged(ListChangeListener.Change<? extends Goal> c) {
@@ -45,18 +66,17 @@ public class GoalsList extends VBox {
             } else {
                 for (Goal added : c.getAddedSubList()) add(added);
                 for (Goal removed : c.getRemoved()) remove(removed);
-                FXCollections.sort(getChildren(), GoalsList::sort);
+                FXCollections.sort(pane.getChildren(), GoalsList::sort);
             }
         }
     }
 
-    private void add(Goal added) {
-        getChildren().add(new GoalLine(added, true));
-
+    private void calculatePoints() {
+        LogEntry.FACTORY.getAllFinishedOnDateOf(LocalDateTime.now()).forEach(this::addPointsOf);
     }
 
-    private void remove(Goal removed) {
-        getChildren().remove(new GoalLine(removed, false));
+    private void add(Goal added) {
+        pane.getChildren().add(new GoalLine(added, true));
     }
 
     private static int sort(Node o1, Node o2) {
@@ -71,9 +91,24 @@ public class GoalsList extends VBox {
         return goals;
     }
 
+    private void remove(Goal removed) {
+        pane.getChildren().remove(new GoalLine(removed, false));
+    }
+
+    private void addPointsOf(LogEntry entry) {
+        final long minutes = entry.getStart().until(entry.getEnd(), ChronoUnit.MINUTES);
+        double points = minutes * entry.getActivity().getPointsPerMinute();
+        for (QualityTime qualityTime : QualityTime.FACTORY.getAll(entry)) {
+            points *= qualityTime.getSecond().getPointsFactor();
+        }
+        this.points += points;
+        pointsText.setText(Long.toString(Math.round(this.points)));
+    }
+
     public void reload() {
         getChildren().forEach(node -> {
             if (node instanceof GoalLine) ((GoalLine) node).load(null);
+            calculatePoints();
         });
     }
 
@@ -81,6 +116,7 @@ public class GoalsList extends VBox {
         getChildren().forEach(node -> {
             if (node instanceof GoalLine) ((GoalLine) node).accept(newEntry);
         });
+        addPointsOf(newEntry);
     }
 
     private static class GoalLine extends HBox {

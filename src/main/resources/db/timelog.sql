@@ -14,12 +14,13 @@ CREATE TABLE IF NOT EXISTS log
 
 CREATE TABLE IF NOT EXISTS activity
 (
-    id     integer not null primary key autoincrement,
-    parent integer default 0 not null
+    id              integer not null primary key autoincrement,
+    parent          integer default 0 not null
         references activity
             on update cascade on delete set default,
-    name   text    not null,
-    color  text    default '#DDDDDDFF' not null
+    name            text    not null,
+    color           text    default '#DDDDDDFF' not null,
+    pointsPerMinute real    default 1 not null
 );
 
 CREATE TABLE IF NOT EXISTS meansOfTransport
@@ -30,8 +31,9 @@ CREATE TABLE IF NOT EXISTS meansOfTransport
 
 CREATE TABLE IF NOT EXISTS person
 (
-    id   integer not null primary key autoincrement,
-    name text    not null
+    id           integer not null primary key autoincrement,
+    name         text    not null,
+    pointsFactor real default 1 not null
 );
 
 CREATE TABLE IF NOT EXISTS qualityTime

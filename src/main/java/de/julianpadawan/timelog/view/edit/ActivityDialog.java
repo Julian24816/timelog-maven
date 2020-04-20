@@ -1,8 +1,10 @@
 package de.julianpadawan.timelog.view.edit;
 
 import de.julianpadawan.common.customFX.CreatingChoiceBox;
+import de.julianpadawan.common.customFX.DoubleTextField;
 import de.julianpadawan.common.customFX.ObjectDialog;
 import de.julianpadawan.timelog.model.Activity;
+import de.julianpadawan.timelog.preferences.Preferences;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
@@ -14,6 +16,7 @@ public final class ActivityDialog extends ObjectDialog<Activity> {
     private final CreatingChoiceBox<Activity> parent;
     private final TextField name;
     private final ColorPicker color;
+    private final DoubleTextField pointsPerMinute;
 
     public ActivityDialog() {
         this(null);
@@ -33,8 +36,12 @@ public final class ActivityDialog extends ObjectDialog<Activity> {
 
         color = gridPane2C.addRow("Color", new ColorPicker(Color.valueOf(Activity.DEFAULT_COLOR)));
 
+        pointsPerMinute = new DoubleTextField(1, false);
+        if (Preferences.getBoolean("UseGoals")) gridPane2C.addRow("Points Per Minute", pointsPerMinute);
+
         addOKRequirement(parent.valueProperty().isNotNull());
         addOKRequirement(name.textProperty().isNotEmpty());
+        addOKRequirement(pointsPerMinute.validProperty());
 
         name.requestFocus();
 
@@ -42,10 +49,14 @@ public final class ActivityDialog extends ObjectDialog<Activity> {
             parent.setValue(editedObject.getParent());
             name.setText(editedObject.getName());
             color.setValue(Color.valueOf(editedObject.getColor()));
+            pointsPerMinute.setValue(editedObject.getPointsPerMinute());
             if (editedObject.equals(Activity.getRoot())) parent.setDisable(true);
         } else {
             parent.valueProperty().addListener(observable -> {
-                if (parent.getValue() != null) color.setValue(Color.valueOf(parent.getValue().getColor()));
+                if (parent.getValue() != null) {
+                    color.setValue(Color.valueOf(parent.getValue().getColor()));
+                    pointsPerMinute.setValue(parent.getValue().getPointsPerMinute());
+                }
             });
         }
     }
@@ -61,7 +72,8 @@ public final class ActivityDialog extends ObjectDialog<Activity> {
         return Activity.FACTORY.createNew(
                 parent.getValue(),
                 name.getText(),
-                colorToHex(color.getValue())
+                colorToHex(color.getValue()),
+                pointsPerMinute.getValue()
         );
     }
 
@@ -78,6 +90,7 @@ public final class ActivityDialog extends ObjectDialog<Activity> {
         editedObject.setParent(parent.getValue());
         editedObject.setName(name.getText());
         editedObject.setColor(colorToHex(color.getValue()));
+        editedObject.setPointsPerMinute(pointsPerMinute.getValue());
         return Activity.FACTORY.update(editedObject);
     }
 }

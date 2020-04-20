@@ -16,7 +16,7 @@ public class LookAtDayDialog extends Alert {
         setHeaderText("Day " + DATE_FORMAT.format(date));
 
         final LogEntryList logEntryList = new LogEntryList();
-        logEntryList.getEntries().addAll(LogEntry.FACTORY.getAllFinishedOn(date));
+        logEntryList.getEntries().addAll(LogEntry.FACTORY.getAllFinishedOnDateOf(LogEntry.toStartOfDay(date)));
         getDialogPane().setContent(logEntryList);
         setResizable(true);
     }

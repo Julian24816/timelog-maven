@@ -13,10 +13,13 @@ import java.sql.ResultSet;
 import java.util.*;
 
 public final class Activity extends ModelObject<Activity> {
-    public static final String DEFAULT_COLOR = "#DDD";
+    public static final String DEFAULT_COLOR = "#e6e6e6";
     public static final ActivityFactory FACTORY = new ActivityFactory();
+
     private final StringProperty name = new SimpleStringProperty(this, "name");
     private final StringProperty color = new SimpleStringProperty(this, "color");
+    private final DoubleProperty pointsPerMinute = new SimpleDoubleProperty(this, "pointsPerMinute");
+
     private final IntegerProperty parentId = new SimpleIntegerProperty(this, "parent");
     private final ObservableObjectValue<Activity> parent = new ObjectBinding<>() {
         {
@@ -42,11 +45,12 @@ public final class Activity extends ModelObject<Activity> {
         }
     };
 
-    private Activity(int id, int parentId, String name, String color) {
+    private Activity(int id, int parentId, String name, String color, double pointsPerMinute) {
         super(id);
         this.parentId.setValue(id == parentId ? 0 : parentId);
         this.name.setValue(Objects.requireNonNull(name));
         this.color.setValue(Objects.requireNonNull(color));
+        this.pointsPerMinute.setValue(pointsPerMinute);
         if (id != 0) depth.bind(CustomBindings.selectInt(this.parent, Activity::depthProperty).add(1));
     }
 
@@ -100,6 +104,18 @@ public final class Activity extends ModelObject<Activity> {
         color.setValue(value);
     }
 
+    public DoubleProperty pointsPerMinuteProperty() {
+        return pointsPerMinute;
+    }
+
+    public double getPointsPerMinute() {
+        return pointsPerMinute.get();
+    }
+
+    public void setPointsPerMinute(double value) {
+        pointsPerMinute.setValue(value);
+    }
+
     @Override
     public ObservableStringValue displayNameProperty() {
         return displayName;
@@ -112,6 +128,7 @@ public final class Activity extends ModelObject<Activity> {
                 ", parentId=" + parentId.get() +
                 ", name=" + name.get() +
                 ", color=" + color.get() +
+                ", pointsPerMinute=" + pointsPerMinute.get() +
                 ", depth=" + depth.get() +
                 '}';
     }
@@ -150,12 +167,14 @@ public final class Activity extends ModelObject<Activity> {
                             view.getInt("id"),
                             view.getInt("parent"),
                             view.getString("name"),
-                            view.getString("color")
+                            view.getString("color"),
+                            view.getDouble("pointsPerMinute")
                     ),
                     new ModelTableDefinition<Activity>("activity")
                             .withColumn("parent", ColumnType.getForeignKeyColumn(Activity.class), Activity::getParent)
                             .withColumn("name", ColumnType.STRING, Activity::getName)
                             .withColumn("color", ColumnType.STRING, Activity::getColor)
+                            .withColumn("pointsPerMinute", ColumnType.DOUBLE, Activity::getPointsPerMinute)
             );
 
             final boolean rootExists = selectWhere(ResultSet::next, "id=0");
