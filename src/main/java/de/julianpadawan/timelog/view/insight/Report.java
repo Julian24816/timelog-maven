@@ -48,7 +48,7 @@ public class Report extends Alert {
     }
 
     public static Report on(LocalDate date) {
-        return new Report(DATE_FORMAT.format(date), LogEntry.FACTORY.getAllFinishedOnDateOf(LogEntry.toStartOfDay(date)));
+        return new Report(DATE_FORMAT.format(date), LogEntry.FACTORY.getAllFinishedOnDateOf(LogEntry.atStartOfDay(date)));
     }
 
     public static Report yesterday() {

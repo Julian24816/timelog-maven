@@ -2,6 +2,7 @@ package de.julianpadawan.timelog.insight;
 
 
 import de.julianpadawan.timelog.model.LogEntry;
+import de.julianpadawan.timelog.view.App;
 
 import java.time.Duration;
 
@@ -23,10 +24,7 @@ public final class DurationDatum implements StatisticalDatum<Duration> {
 
     @Override
     public String toString() {
-        if (duration.equals(Duration.ZERO)) return "";
-        final long minutes = Math.floorDiv(duration.getSeconds(), 60) % 60;
-        final long hours = Math.floorDiv(duration.getSeconds(), 3600);
-        return String.format("%dh %02dm", hours, minutes);
+        return App.formatDuration(duration);
     }
 
     @Override

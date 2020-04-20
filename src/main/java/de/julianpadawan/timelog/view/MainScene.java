@@ -13,6 +13,7 @@ import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -31,21 +32,23 @@ public class MainScene extends Scene {
 
         logEntryList.getEntries().addAll(LogEntry.FACTORY.getAllFinishedOnDateOf(LocalDateTime.now()));
 
+        LocalDate today = LogEntry.getDate(LocalDateTime.now());
         final CurrentEntryDisplay currentEntryDisplay = new CurrentEntryDisplay(logEntry -> {
-            if (logEntry.getEnd().isAfter(LocalDate.now().atTime(Preferences.getTime("StartOfDay")))) {
+            final LocalDate date = LogEntry.getDate(logEntry.getEnd());
+            if (date.isAfter(today)) App.restart(true);
+            else if (date.equals(today)) {
                 logEntryList.getEntries().add(logEntry);
                 goals.acceptEntry(logEntry);
             }
         });
 
         final BorderPane borderPane = (BorderPane) getRoot();
-        borderPane.setTop(getMenuBar());
+        borderPane.setTop(new VBox(getMenuBar(), currentEntryDisplay));
+        VBox.setMargin(currentEntryDisplay, new Insets(10, 10, 0, 10));
         borderPane.setCenter(logEntryList);
         BorderPane.setMargin(logEntryList, new Insets(10));
-        borderPane.setBottom(currentEntryDisplay);
-        BorderPane.setMargin(currentEntryDisplay, new Insets(0, 10, 10, 10));
-        if (Preferences.getBoolean("UseGoals")) borderPane.setRight(goals);
-        BorderPane.setMargin(goals, new Insets(10, 10, 10, 0));
+        if (Preferences.getBoolean("UseGoals")) borderPane.setBottom(goals);
+        BorderPane.setMargin(goals, new Insets(0, 10, 10, 10));
     }
 
     private MenuBar getMenuBar() {

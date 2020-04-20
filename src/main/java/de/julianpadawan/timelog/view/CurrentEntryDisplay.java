@@ -6,6 +6,7 @@ import de.julianpadawan.common.customFX.TimeTextField;
 import de.julianpadawan.timelog.model.Activity;
 import de.julianpadawan.timelog.model.LogEntry;
 import de.julianpadawan.timelog.model.MeansOfTransport;
+import de.julianpadawan.timelog.preferences.Preferences;
 import de.julianpadawan.timelog.view.edit.LogEntryDialog;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -123,7 +124,9 @@ public class CurrentEntryDisplay extends GridPane {
     }
 
     private void newEntry() {
-        Activity activity = ChooseActivityDialog.choose(Activity.getRoot());
+        Activity activity = Preferences.getBoolean("UseActivityChooser")
+                ? ChooseActivityDialog.choose(Activity.getRoot())
+                : Activity.getRoot();
         if (activity != null) new LogEntryDialog(activity).showAndWait().ifPresent(this::entryDialogResult);
     }
 

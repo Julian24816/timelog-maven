@@ -3,22 +3,29 @@ package de.julianpadawan.timelog.insight;
 import de.julianpadawan.common.db.Database;
 import de.julianpadawan.common.db.ResultView;
 import de.julianpadawan.timelog.model.*;
-import de.julianpadawan.timelog.preferences.Preferences;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 import java.sql.ResultSet;
 import java.sql.Timestamp;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public abstract class StreakCalculator {
     private final Activity activity;
     private final Person person;
+
+    private final StringProperty label = new SimpleStringProperty(this, "label");
     private final StringProperty streak = new SimpleStringProperty(this, "streak");
+    private final BooleanProperty complete = new SimpleBooleanProperty(this, "complete");
+    private final StringProperty progress = new SimpleStringProperty(this, "progress");
+
 
     protected StreakCalculator(Activity activity, Person person) {
         this.activity = activity;
         this.person = person;
+        this.label.bind(person != null ? person.nameProperty() : activity.nameProperty());
     }
 
     public static StreakCalculator of(Goal goal) {
@@ -43,10 +50,10 @@ public abstract class StreakCalculator {
                 + "|" + MonthStreakCalculator.PATTERN;
     }
 
-    public final void init(LocalDate reference) {
-        preInit(reference);
+    public final void init(LocalDateTime referenceTime) {
+        preInit(referenceTime);
         Database.execute(LogEntry.LogEntryFactory.TABLE_DEFINITION.getBaseSelectSQL() + " WHERE end < ? AND NOT end IS NULL ORDER BY end DESC", statement -> {
-            statement.setTimestamp(1, Timestamp.valueOf(reference.plusDays(1).atTime(Preferences.getTime("StartOfDay"))));
+            statement.setTimestamp(1, Timestamp.valueOf(referenceTime));
             try (final ResultSet resultSet = statement.executeQuery()) {
                 final ResultView view = new ResultView(resultSet);
                 while (resultSet.next()) {
@@ -60,7 +67,7 @@ public abstract class StreakCalculator {
         postInit();
     }
 
-    protected abstract void preInit(LocalDate reference);
+    protected abstract void preInit(LocalDateTime referenceTime);
 
     protected abstract boolean accept(LogEntry entry);
 
@@ -78,6 +85,19 @@ public abstract class StreakCalculator {
 
     protected abstract void acceptNewInternal(LogEntry newEntry);
 
+    public final StringProperty labelProperty() {
+        return label;
+    }
+
+    public final String getLabel() {
+        return label.get();
+    }
+
+    protected final void setLabel(String value) {
+        label.unbind();
+        label.setValue(value);
+    }
+
     public final StringProperty streakProperty() {
         return streak;
     }
@@ -88,5 +108,29 @@ public abstract class StreakCalculator {
 
     protected final void setStreak(String value) {
         streak.setValue(value);
+    }
+
+    public final BooleanProperty completeProperty() {
+        return complete;
+    }
+
+    public final boolean isComplete() {
+        return complete.get();
+    }
+
+    protected final void setComplete(boolean value) {
+        complete.setValue(value);
+    }
+
+    public final StringProperty progressProperty() {
+        return progress;
+    }
+
+    public final String getProgress() {
+        return progress.get();
+    }
+
+    protected final void setProgress(String value) {
+        progress.setValue(value);
     }
 }

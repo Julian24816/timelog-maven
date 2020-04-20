@@ -1,9 +1,11 @@
 package de.julianpadawan.timelog.insight;
 
 import de.julianpadawan.timelog.model.Goal;
+import de.julianpadawan.timelog.model.LogEntry;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.TemporalAdjusters;
 
 public final class WeekStreakCalculator extends DurationAccumulatingStreakCalculator {
@@ -19,8 +21,8 @@ public final class WeekStreakCalculator extends DurationAccumulatingStreakCalcul
     }
 
     @Override
-    protected LocalDate toFirstOfInterval(LocalDate date) {
-        return date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+    protected LocalDate toFirstOfInterval(LocalDateTime dateTime) {
+        return LogEntry.getDate(dateTime).with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
     }
 
     @Override

@@ -53,6 +53,9 @@ public final class PreferencesDialog extends Dialog<ButtonType> {
         final CheckBox enableGoals = gridPane2C.addRow("Enable Goals", new CheckBox());
         preferenceMap.mapTo(enableGoals, "UseGoals");
 
+        final CheckBox useActivityChooser = gridPane2C.addRow("Use Activity Chooser", new CheckBox());
+        preferenceMap.mapTo(useActivityChooser, "UseActivityChooser");
+
         getDialogPane().getButtonTypes().addAll(OK_BUTTON, ButtonType.CANCEL);
         Button okButton = (Button) getDialogPane().lookupButton(OK_BUTTON);
         okButton.setOnAction(event -> preferenceMap.dumpPreferences());

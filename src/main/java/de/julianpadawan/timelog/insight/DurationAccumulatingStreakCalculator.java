@@ -2,9 +2,11 @@ package de.julianpadawan.timelog.insight;
 
 import de.julianpadawan.timelog.model.Goal;
 import de.julianpadawan.timelog.model.LogEntry;
+import de.julianpadawan.timelog.view.App;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
 public abstract class DurationAccumulatingStreakCalculator extends StreakCalculator {
@@ -28,17 +30,17 @@ public abstract class DurationAccumulatingStreakCalculator extends StreakCalcula
     protected abstract int getDayInterval(Goal goal);
 
     @Override
-    protected final void preInit(LocalDate reference) {
-        this.reference = toFirstOfInterval(reference);
+    protected final void preInit(LocalDateTime referenceTime) {
+        this.reference = toFirstOfInterval(referenceTime);
     }
 
-    protected abstract LocalDate toFirstOfInterval(LocalDate date);
+    protected abstract LocalDate toFirstOfInterval(LocalDateTime date);
 
     @Override
     protected final boolean accept(LogEntry entry) {
-        final LocalDate date = toFirstOfInterval(LogEntry.getDate(entry.getEnd()));
+        final LocalDate date = toFirstOfInterval(entry.getEnd());
         if (isTooLongAgo(date)) return false;
-        if (!accumulate(date, Duration.between(entry.getStart(), entry.getEnd()))) return true;
+        if (!accumulatedEnough(date, Duration.between(entry.getStart(), entry.getEnd()))) return true;
         if (latest == null) latest = earliest = date;
         earliest = date;
         return true;
@@ -49,7 +51,7 @@ public abstract class DurationAccumulatingStreakCalculator extends StreakCalcula
                 || earliest != null && date.until(earliest, ChronoUnit.DAYS) > interval;
     }
 
-    private boolean accumulate(LocalDate date, Duration duration) {
+    private boolean accumulatedEnough(LocalDate date, Duration duration) {
         if (date.equals(reference)) referenceDateDuration = referenceDateDuration.plus(duration);
         if (date.equals(currentDate)) currentDuration = currentDuration.plus(duration);
         else {
@@ -60,37 +62,35 @@ public abstract class DurationAccumulatingStreakCalculator extends StreakCalcula
     }
 
     @Override
+    protected final void acceptNewInternal(LogEntry newEntry) {
+        final LocalDate date = toFirstOfInterval(newEntry.getEnd());
+        if (!reference.equals(date)) return;
+        referenceDateDuration = referenceDateDuration.plus(Duration.between(newEntry.getStart(), newEntry.getEnd()));
+        if (referenceDateDuration.compareTo(minDuration) >= 0) {
+            if (latest == null) earliest = latest = date;
+            latest = reference;
+        }
+        postInit();
+    }
+
+    protected abstract String formatStreakDays(long streakDurationDays);
+
+    @Override
     protected final void postInit() {
+        setProgress(App.formatDuration(referenceDateDuration) + "/" + App.formatDuration(minDuration));
         if (latest == null) {
+            setComplete(false);
             setStreak(formatStreakDays(-1));
             return;
         }
         final long daysLeft = latest.until(reference, ChronoUnit.DAYS);
-        if (daysLeft < 0) throw new IllegalStateException("accept was called with entry later than reference");
+        assert daysLeft >= 0;
+        setComplete(daysLeft == 0);
 
         final long streakDays = earliest.until(latest, ChronoUnit.DAYS);
         if (daysLeft == 0) setStreak(String.format("%s", formatStreakDays(streakDays)));
         else if (daysLeft < interval)
             setStreak(String.format("(%s) %s", formatStreakDays(streakDays), formatStreakDays(streakDays + daysLeft)));
         else setStreak(String.format("(%s) %s", formatStreakDays(streakDays), formatStreakDays(-1)));
-    }
-
-    protected abstract String formatStreakDays(long streakDurationDays);
-
-    @Override
-    protected final void acceptNewInternal(LogEntry newEntry) {
-        final LocalDate date = toFirstOfInterval(LogEntry.getDate(newEntry.getEnd()));
-        if (!reference.equals(date)) {
-            if (latest == null || latest.until(date, ChronoUnit.DAYS) > interval) {
-                earliest = latest = null;
-                reference = date;
-            }
-        }
-        referenceDateDuration = referenceDateDuration.plus(Duration.between(newEntry.getStart(), newEntry.getEnd()));
-        if (referenceDateDuration.compareTo(minDuration) >= 0) {
-            if (latest == null) earliest = latest = date;
-            latest = date;
-        }
-        postInit();
     }
 }

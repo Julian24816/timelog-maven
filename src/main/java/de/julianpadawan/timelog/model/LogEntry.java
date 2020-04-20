@@ -125,7 +125,7 @@ public final class LogEntry extends ModelObject<LogEntry> {
         end.setValue(value);
     }
 
-    public static LocalDateTime toStartOfDay(LocalDate beginInclusive) {
+    public static LocalDateTime atStartOfDay(LocalDate beginInclusive) {
         return beginInclusive.atTime(Preferences.getTime("StartOfDay"));
     }
 
@@ -170,7 +170,7 @@ public final class LogEntry extends ModelObject<LogEntry> {
 
         public Collection<LogEntry> getAllFinishedBetween(final LocalDate beginInclusive, final LocalDate endExclusive) {
             //TODO remove this function
-            return getAllFinishedBetween(toStartOfDay(beginInclusive), toStartOfDay(endExclusive));
+            return getAllFinishedBetween(atStartOfDay(beginInclusive), atStartOfDay(endExclusive));
         }
 
         public Collection<LogEntry> getAllFinishedBetween(final LocalDateTime from, final LocalDateTime to) {

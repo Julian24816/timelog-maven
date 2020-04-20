@@ -9,7 +9,6 @@ import de.julianpadawan.timelog.model.Goal;
 import de.julianpadawan.timelog.model.LogEntry;
 import de.julianpadawan.timelog.model.QualityTime;
 import de.julianpadawan.timelog.view.edit.GoalDialog;
-import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -25,7 +24,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
@@ -46,7 +44,7 @@ public class GoalsList extends VBox {
         hBox.setAlignment(Pos.BASELINE_CENTER);
         getChildren().add(hBox);
 
-        pane.setPrefWidth(250);
+        pane.setPrefWidth(200);
         final ScrollPane scrollPane = new ScrollPane(pane);
         scrollPane.setFitToWidth(true);
         getChildren().add(scrollPane);
@@ -72,6 +70,8 @@ public class GoalsList extends VBox {
     }
 
     private void calculatePoints() {
+        points = 0;
+        pointsText.setText("0");
         LogEntry.FACTORY.getAllFinishedOnDateOf(LocalDateTime.now()).forEach(this::addPointsOf);
     }
 
@@ -79,20 +79,12 @@ public class GoalsList extends VBox {
         pane.getChildren().add(new GoalLine(added, true));
     }
 
-    private static int sort(Node o1, Node o2) {
-        if (o1 instanceof GoalLine && o2 instanceof GoalLine)
-            return ((GoalLine) o1).goal.compareTo(((GoalLine) o2).goal);
-        if (o1 instanceof GoalLine) return -1;
-        if (o2 instanceof GoalLine) return 1;
-        return 0;
+    private void remove(Goal removed) {
+        pane.getChildren().remove(new GoalLine(removed, false));
     }
 
     public ObservableList<Goal> getGoals() {
         return goals;
-    }
-
-    private void remove(Goal removed) {
-        pane.getChildren().remove(new GoalLine(removed, false));
     }
 
     private void addPointsOf(LogEntry entry) {
@@ -106,64 +98,68 @@ public class GoalsList extends VBox {
     }
 
     public void reload() {
-        getChildren().forEach(node -> {
-            if (node instanceof GoalLine) ((GoalLine) node).load(null);
-            calculatePoints();
+        pane.getChildren().forEach(node -> {
+            if (node instanceof GoalLine) ((GoalLine) node).load();
         });
+        calculatePoints();
     }
 
     public void acceptEntry(LogEntry newEntry) {
-        getChildren().forEach(node -> {
+        pane.getChildren().forEach(node -> {
             if (node instanceof GoalLine) ((GoalLine) node).accept(newEntry);
         });
+        FXCollections.sort(pane.getChildren(), GoalsList::sort);
         addPointsOf(newEntry);
+    }
+
+    private static int sort(Node o1, Node o2) {
+        if (!(o1 instanceof GoalLine) || !(o2 instanceof GoalLine)) return 0;
+        final GoalLine line1 = (GoalLine) o1;
+        final GoalLine line2 = (GoalLine) o2;
+        final int complete = Boolean.compare(line2.calculator.isComplete(), line1.calculator.isComplete());
+        return complete != 0 ? complete : line1.goal.compareTo(line2.goal);
     }
 
     private static class GoalLine extends HBox {
         private final Goal goal;
-        private final Text streak = new Text();
+        private final Text label = new Text(), streak = new Text(), progress = new Text();
         private StreakCalculator calculator;
 
         private GoalLine(Goal goal, boolean load) {
-            super();
+            super(5);
             setPadding(new Insets(5));
             this.goal = goal;
 
-            Text goalName = new Text();
-            goalName.textProperty().bind(goal.displayNameProperty());
-
-            Region spacer = new Region();
-            spacer.setMinWidth(10);
-            spacer.setMaxWidth(Double.MAX_VALUE);
-            HBox.setHgrow(spacer, Priority.ALWAYS);
-
-            getChildren().addAll(goalName, spacer, streak);
+            getChildren().addAll(label, streak);
 
             backgroundProperty().bind(CustomBindings.apply(
                     CustomBindings.select(goal.activityProperty(), Activity::colorProperty),
                     color -> new Background(new BackgroundFill(Color.valueOf(color), null, null))));
             setOnMouseClicked(this::doubleClick);
 
-            if (load) {
-                goal.displayNameProperty().addListener(this::load);
-                this.load(null);
-            }
+            if (load) this.load();
         }
 
         private void doubleClick(MouseEvent mouseEvent) {
             if (mouseEvent.getButton().equals(MouseButton.PRIMARY) && mouseEvent.getClickCount() == 2)
-                new GoalDialog(goal).show();
+                new GoalDialog(goal).showAndWait().ifPresent(goal -> load());
         }
 
-        private void load(Observable ignored) {
+        private void load() {
             calculator = StreakCalculator.of(goal);
-            calculator.init(LocalDate.now());
+            label.textProperty().bind(calculator.labelProperty());
             streak.textProperty().bind(calculator.streakProperty());
+            progress.textProperty().bind(calculator.progressProperty());
+            calculator.init(LocalDateTime.now());
+            if (!calculator.isComplete()) getChildren().add(progress);
         }
 
         private void accept(LogEntry newEntry) {
-            if (calculator == null) load(null);
-            calculator.acceptNew(newEntry);
+            if (calculator == null) load();
+            else {
+                calculator.acceptNew(newEntry);
+                if (calculator.isComplete()) getChildren().remove(progress);
+            }
         }
 
         @Override

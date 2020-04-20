@@ -1,8 +1,10 @@
 package de.julianpadawan.timelog.insight;
 
 import de.julianpadawan.timelog.model.Goal;
+import de.julianpadawan.timelog.model.LogEntry;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.TemporalAdjusters;
 
 public final class MonthStreakCalculator extends DurationAccumulatingStreakCalculator {
@@ -18,8 +20,8 @@ public final class MonthStreakCalculator extends DurationAccumulatingStreakCalcu
     }
 
     @Override
-    protected LocalDate toFirstOfInterval(LocalDate date) {
-        return date.with(TemporalAdjusters.firstDayOfMonth());
+    protected LocalDate toFirstOfInterval(LocalDateTime dateTime) {
+        return LogEntry.getDate(dateTime).with(TemporalAdjusters.firstDayOfMonth());
     }
 
     @Override

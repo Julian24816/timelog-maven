@@ -33,7 +33,7 @@ public class LookAtDaysDialog extends Alert {
             final LocalDate date = from.plusDays(i);
             final LocalDateTime startOfDay = date.atTime(Preferences.getTime("StartOfDay"));
 
-            for (LogEntry logEntry : LogEntry.FACTORY.getAllFinishedOnDateOf(LogEntry.toStartOfDay(date))) {
+            for (LogEntry logEntry : LogEntry.FACTORY.getAllFinishedOnDateOf(LogEntry.atStartOfDay(date))) {
                 list.getChildren().add(new LogEntryList.ActivityLine(logEntry, startOfDay));
             }
 
