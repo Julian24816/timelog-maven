@@ -200,7 +200,7 @@ public final class Activity extends ModelObject<Activity> {
         }
 
         public Collection<Activity> getAllChildren(Activity parent) {
-            return Database.execute("SELECT id FROM activity WHERE parent = ?", statement -> {
+            return Database.execute("SELECT id FROM activity WHERE id != 0 AND parent = ? ORDER BY name", statement -> {
                 statement.setInt(1, parent.getId());
                 try (final ResultSet resultSet = statement.executeQuery()) {
                     List<Activity> result = new LinkedList<>();
