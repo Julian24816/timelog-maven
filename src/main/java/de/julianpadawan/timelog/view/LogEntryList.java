@@ -106,11 +106,6 @@ public class LogEntryList extends ScrollPane {
             vBox.getChildren().add(placeholder);
     }
 
-    public void refreshCanvas() {
-        canvas.setWidth(Preferences.getDouble("MinuteMarkWidth"));
-        canvas.draw();
-    }
-
     public ObservableList<LogEntry> getEntries() {
         return entries;
     }

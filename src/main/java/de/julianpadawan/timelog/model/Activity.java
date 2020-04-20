@@ -165,25 +165,21 @@ public final class Activity extends ModelObject<Activity> {
         }
 
         @Override
-        public Activity getForId(int id) {
-            if (!activityMap.containsKey(id)) {
-                final Activity activity = super.getForId(id);
-                if (activity != null) putActivity(activity);
-            }
-            return activityMap.get(id);
-        }
-
-        private void putActivity(Activity activity) {
-            activityMap.putIfAbsent(activity.getId(), activity);
-        }
-
-        @Override
         public Collection<Activity> getAll() {
             if (!loaded) {
                 loaded = true;
                 super.getAll().forEach(this::putActivity);
             }
             return activityMap.values();
+        }
+
+        @Override
+        public Activity getForId(int id) {
+            if (!activityMap.containsKey(id)) {
+                final Activity activity = super.getForId(id);
+                if (activity != null) putActivity(activity);
+            }
+            return activityMap.get(id);
         }
 
         @Override
@@ -208,6 +204,15 @@ public final class Activity extends ModelObject<Activity> {
                     return result;
                 }
             }, Collections.emptyList());
+        }
+
+        private void putActivity(Activity activity) {
+            activityMap.putIfAbsent(activity.getId(), activity);
+        }
+
+        public void clearCache() {
+            activityMap.clear();
+            loaded = false;
         }
     }
 }

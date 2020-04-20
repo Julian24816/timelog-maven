@@ -10,6 +10,7 @@ import javafx.scene.control.*;
 public final class PreferencesDialog extends Dialog<ButtonType> {
 
     private final BooleanExpression okEnabled;
+    public static final ButtonType OK_BUTTON = new ButtonType("Restart", ButtonBar.ButtonData.OK_DONE);
 
     public PreferencesDialog() {
         super();
@@ -47,8 +48,13 @@ public final class PreferencesDialog extends Dialog<ButtonType> {
         final TextField sleepLineHeight = gridPane2C.addRow("Sleep Line Height", new TextField());
         preferenceMap.mapTo(sleepLineHeight, "SleepLineHeight");
 
-        getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-        Button okButton = (Button) getDialogPane().lookupButton(ButtonType.OK);
+        gridPane2C.addSeparator();
+
+        final CheckBox enableGoals = gridPane2C.addRow("Enable Goals", new CheckBox());
+        preferenceMap.mapTo(enableGoals, "UseGoals");
+
+        getDialogPane().getButtonTypes().addAll(OK_BUTTON, ButtonType.CANCEL);
+        Button okButton = (Button) getDialogPane().lookupButton(OK_BUTTON);
         okButton.setOnAction(event -> preferenceMap.dumpPreferences());
 
         okEnabled = CustomBindings.matches(scaling, "\\d+(\\.\\d+)?")

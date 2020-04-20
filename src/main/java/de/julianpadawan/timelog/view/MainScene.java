@@ -45,7 +45,7 @@ public class MainScene extends Scene {
         BorderPane.setMargin(logEntryList, new Insets(10));
         borderPane.setBottom(currentEntryDisplay);
         BorderPane.setMargin(currentEntryDisplay, new Insets(0, 10, 10, 10));
-        borderPane.setRight(goals);
+        if (Preferences.getBoolean("UseGoals")) borderPane.setRight(goals);
         BorderPane.setMargin(goals, new Insets(10, 10, 10, 0));
     }
 
@@ -73,9 +73,9 @@ public class MainScene extends Scene {
                 new Menu("Tools", null,
                         editAllMenuItem(),
                         editActivitiesMenuItem(),
-                        reloadMenuItem(),
                         reloadGoalsMenuItem(),
-                        refreshCanvasMenuItem(),
+                        restartMenuItem(),
+                        loginMenuItem(),
                         preferencesMenuItem()
                 )
         );
@@ -142,37 +142,29 @@ public class MainScene extends Scene {
         return getMenuItem("Edit Activities", () -> new AllActivitiesDialog().show());
     }
 
-    private MenuItem reloadMenuItem() {
-        return getMenuItem("Reload List", this::reloadList);
-    }
-
     private MenuItem reloadGoalsMenuItem() {
         return getMenuItem("Reload Goals", goals::reload);
     }
 
-    private MenuItem refreshCanvasMenuItem() {
-        return getMenuItem("Redraw Minute Marks", logEntryList::refreshCanvas);
+    private MenuItem restartMenuItem() {
+        return getMenuItem("Restart", () -> App.restart(true));
+    }
+
+    private MenuItem loginMenuItem() {
+        return getMenuItem("Change Login Information", () -> App.restart(false));
     }
 
     private MenuItem preferencesMenuItem() {
         return getMenuItem("Preferences",
                 () -> new PreferencesDialog().showAndWait()
                         .filter(buttonType -> buttonType.equals(ButtonType.OK))
-                        .ifPresent(ok -> {
-                            reloadList();
-                            logEntryList.refreshCanvas();
-                        }));
+                        .ifPresent(ok -> App.restart(true)));
     }
 
     private MenuItem getMenuItem(String label, final Runnable eventHandler) {
         final MenuItem menuItem = new MenuItem(label);
         menuItem.setOnAction(event -> eventHandler.run());
         return menuItem;
-    }
-
-    private void reloadList() {
-        logEntryList.getEntries().clear();
-        logEntryList.getEntries().addAll(LogEntry.FACTORY.getAllFinishedOn(LocalDate.now()));
     }
 
 }

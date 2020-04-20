@@ -112,10 +112,12 @@ public class CurrentEntryDisplay extends GridPane {
         Label durationLabel = new Label(", active for ");
         durationLabel.setLabelFor(duration);
 
-        GridPane.setHalignment(duration, HPos.CENTER);
         add(new HBox(title, startTimeLabel, startTime, durationLabel, duration), 0, 0);
         add(new JoiningTextFlow(activityName, what, transport), 0, 1);
         add(button, 1, 0, 1, 2);
+
+        setHgap(10);
+        GridPane.setHalignment(duration, HPos.CENTER);
         button.setMaxHeight(Double.MAX_VALUE);
 
         final ColumnConstraints growColumn = new ColumnConstraints();
