@@ -37,6 +37,19 @@ public final class LogEntry extends ModelObject<LogEntry> {
         this.meansOfTransport.setValue(transport);
     }
 
+    public static LocalDate today() {
+        return getDate(LocalDateTime.now());
+    }
+
+    public static LocalDate getDate(LocalDateTime time) {
+        if (!time.toLocalTime().isBefore(Preferences.getTime("StartOfDay"))) return time.toLocalDate();
+        return time.toLocalDate().minusDays(1);
+    }
+
+    public static LocalDateTime atStartOfDay(LocalDate beginInclusive) {
+        return beginInclusive.atTime(Preferences.getTime("StartOfDay"));
+    }
+
     public ObjectProperty<Activity> activityProperty() {
         return activity;
     }
@@ -123,15 +136,6 @@ public final class LogEntry extends ModelObject<LogEntry> {
 
     public void setEnd(LocalDateTime value) {
         end.setValue(value);
-    }
-
-    public static LocalDateTime atStartOfDay(LocalDate beginInclusive) {
-        return beginInclusive.atTime(Preferences.getTime("StartOfDay"));
-    }
-
-    public static LocalDate getDate(LocalDateTime time) {
-        if (!time.toLocalTime().isBefore(Preferences.getTime("StartOfDay"))) return time.toLocalDate();
-        return time.toLocalDate().minusDays(1);
     }
 
     public static final class LogEntryFactory extends ModelFactory<LogEntry> {

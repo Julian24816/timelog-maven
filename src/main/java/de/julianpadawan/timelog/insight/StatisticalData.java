@@ -25,4 +25,8 @@ public final class StatisticalData<D> implements Consumer<StatisticalDatum<D>> {
     public StatisticalDatum<D> get() {
         return value;
     }
+
+    public void copyFrom(StatisticalData<D> other) {
+        value = other.value;
+    }
 }

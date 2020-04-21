@@ -38,10 +38,6 @@ public abstract class Statistic<T, D> implements Comparable<Statistic<T, D>> {
 
     protected abstract Statistic<T, D> newStatistic(T key);
 
-    public StatisticalDatum<D> getAggregateData() {
-        return aggregateData.get();
-    }
-
     public StatisticalDatum<D> getData() {
         return data.get();
     }
@@ -52,10 +48,30 @@ public abstract class Statistic<T, D> implements Comparable<Statistic<T, D>> {
 
     @Override
     public int compareTo(Statistic<T, D> o) {
-        return getName().compareTo(o.getName());
+        return getAggregateData().compareTo(o.getAggregateData());
+    }
+
+    public StatisticalDatum<D> getAggregateData() {
+        return aggregateData.get();
     }
 
     public String getName() {
         return name;
+    }
+
+    public final Statistic<T, D> flattened() {
+        if (children.size() == 0) return this;
+        if (children.size() == 1 && getData().isZero())
+            return children.values().iterator().next().flattened();
+        else {
+            final Statistic<T, D> rootStatistic = newStatistic(key);
+            rootStatistic.data.copyFrom(data);
+            rootStatistic.aggregateData.copyFrom(aggregateData);
+            children.values().forEach(child -> {
+                final Statistic<T, D> childFlattened = child.flattened();
+                rootStatistic.children.put(childFlattened.key, childFlattened);
+            });
+            return rootStatistic;
+        }
     }
 }

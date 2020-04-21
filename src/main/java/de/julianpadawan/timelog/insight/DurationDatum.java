@@ -36,4 +36,14 @@ public final class DurationDatum implements StatisticalDatum<Duration> {
     public Duration get() {
         return duration;
     }
+
+    @Override
+    public boolean isZero() {
+        return duration.equals(Duration.ZERO);
+    }
+
+    @Override
+    public int compareTo(StatisticalDatum<Duration> o) {
+        return duration.compareTo(o.get());
+    }
 }
