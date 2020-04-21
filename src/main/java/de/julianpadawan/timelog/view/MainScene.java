@@ -6,6 +6,7 @@ import de.julianpadawan.timelog.preferences.Preferences;
 import de.julianpadawan.timelog.view.edit.AllActivitiesDialog;
 import de.julianpadawan.timelog.view.edit.LogEntryDialog;
 import de.julianpadawan.timelog.view.edit.PreferencesDialog;
+import de.julianpadawan.timelog.view.insight.ListAll;
 import de.julianpadawan.timelog.view.insight.LookAtDayDialog;
 import de.julianpadawan.timelog.view.insight.LookAtDaysDialog;
 import de.julianpadawan.timelog.view.insight.Report;
@@ -18,9 +19,11 @@ import javafx.scene.layout.VBox;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
-import java.util.function.Supplier;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class MainScene extends Scene {
 
@@ -32,7 +35,7 @@ public class MainScene extends Scene {
 
         logEntryList.getEntries().addAll(LogEntry.FACTORY.getAllFinishedOnDateOf(LocalDateTime.now()));
 
-        LocalDate today = LogEntry.getDate(LocalDateTime.now());
+        LocalDate today = LogEntry.today();
         final CurrentEntryDisplay currentEntryDisplay = new CurrentEntryDisplay(logEntry -> {
             final LocalDate date = LogEntry.getDate(logEntry.getEnd());
             if (date.isAfter(today)) App.restart(true);
@@ -53,25 +56,15 @@ public class MainScene extends Scene {
 
     private MenuBar getMenuBar() {
         return new MenuBar(
-                new Menu("LookAt", null,
-                        lookAtYesterdayMenuItem(),
-                        lookAtCertainDayMenuItem(),
-                        new SeparatorMenuItem(),
-                        lootAtLast4DaysMenuItem(),
-                        lookAtCurrentWeekMenuItem(),
-                        lookAtLastWeekMenuItem(),
-                        lookAtCertainTimeSpanMenuItem()
-                ),
-                new Menu("Report", null,
-                        reportMenuItem("Today", Report::today),
-                        reportMenuItem("Yesterday", Report::yesterday),
-                        certainDayReportMenuItem(),
-                        new SeparatorMenuItem(),
-                        reportMenuItem("Last 7 days", Report::last7days),
-                        reportMenuItem("Current Week", Report::currentWeek),
-                        reportMenuItem("Previous Week", Report::previousWeek),
-                        certainTimeSpanReportMenuItem()
-                ),
+                getMenu("LookAt",
+                        date -> new LookAtDayDialog(date).show(),
+                        (from, days) -> new LookAtDaysDialog(from, days).show()),
+                getMenu("Report",
+                        date -> Report.on(date).show(),
+                        (from, days) -> Report.between(from, from.plusDays(days)).show()),
+                getMenu("List All",
+                        date -> ListAll.on(date).ifPresent(Dialog::show),
+                        (from, days) -> ListAll.between(from, from.plusDays(days)).ifPresent(Dialog::show)),
                 new Menu("Tools", null,
                         editAllMenuItem(),
                         editActivitiesMenuItem(),
@@ -83,56 +76,27 @@ public class MainScene extends Scene {
         );
     }
 
-    private MenuItem lookAtYesterdayMenuItem() {
-        return getMenuItem("Yesterday",
-                () -> new LookAtDayDialog(LocalDate.now().minus(1, ChronoUnit.DAYS)).show());
+    private Menu getMenu(final String label, final Consumer<LocalDate> dayAction, final BiConsumer<LocalDate, Integer> timeSpanAction) {
+        return new Menu(label, null,
+                getMenuItem("Today", () -> dayAction.accept(LogEntry.today())),
+                getMenuItem("Yesterday", () -> dayAction.accept(LogEntry.today().minusDays(1))),
+                getMenuItem("Day ...", () -> chooseDay(dayAction)),
+                new SeparatorMenuItem(),
+                getMenuItem("Last 4 days", () -> timeSpanAction.accept(LogEntry.today().minusDays(3), 4)),
+                getMenuItem("Current Week", () -> timeSpanAction.accept(startOfWeek(), 7)),
+                getMenuItem("Last Week", () -> timeSpanAction.accept(startOfWeek().minus(7, ChronoUnit.DAYS), 7)),
+                new SeparatorMenuItem(),
+                getMenuItem("Current Month", () -> monthAction(timeSpanAction, 0)),
+                getMenuItem("Last Month", () -> monthAction(timeSpanAction, -1)),
+                new SeparatorMenuItem(),
+                getMenuItem("Days From ... To ...",
+                        () -> chooseTimeSpan((from, to) -> timeSpanAction.accept(from,
+                                (int) from.until(to, ChronoUnit.DAYS))))
+        );
     }
 
-    private MenuItem lookAtCertainDayMenuItem() {
-        return getMenuItem("Day ...",
-                () -> DatePickerDialog.before(LocalDate.now()).showAndWait()
-                        .ifPresent(date -> new LookAtDayDialog(date).show()));
-    }
-
-    private MenuItem lootAtLast4DaysMenuItem() {
-        return getMenuItem("Last 4 days", () -> new LookAtDaysDialog(LocalDate.now().minusDays(3), 4).show());
-    }
-
-    private MenuItem lookAtCurrentWeekMenuItem() {
-        return getMenuItem("Current Week",
-                () -> new LookAtDaysDialog(LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)), 7)
-                        .show());
-    }
-
-    private MenuItem lookAtLastWeekMenuItem() {
-        return getMenuItem("Last Week",
-                () -> new LookAtDaysDialog(
-                        LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).minus(7, ChronoUnit.DAYS), 7)
-                        .show());
-    }
-
-    private MenuItem lookAtCertainTimeSpanMenuItem() {
-        return getMenuItem("Days From ... To ...",
-                () -> DatePickerDialog.any("From").showAndWait()
-                        .ifPresent(from -> DatePickerDialog.after("To", from).showAndWait()
-                                .ifPresent(to -> new LookAtDaysDialog(from, to).show())));
-    }
-
-    private MenuItem reportMenuItem(final String label, final Supplier<Report> report) {
-        return getMenuItem(label, () -> report.get().show());
-    }
-
-    private MenuItem certainDayReportMenuItem() {
-        return getMenuItem("For Day ...",
-                () -> DatePickerDialog.before(LocalDate.now().minus(1, ChronoUnit.DAYS))
-                        .showAndWait().map(Report::on).ifPresent(Dialog::show));
-    }
-
-    private MenuItem certainTimeSpanReportMenuItem() {
-        return getMenuItem("From ... To ...",
-                () -> DatePickerDialog.before("From", LocalDate.now())
-                        .showAndWait().ifPresent(fromDate -> DatePickerDialog.between("To", fromDate, LocalDate.now().plus(1, ChronoUnit.DAYS))
-                                .showAndWait().ifPresent(toDate -> Report.between(fromDate, toDate).show())));
+    private void chooseDay(final Consumer<LocalDate> action) {
+        DatePickerDialog.before(LogEntry.today()).showAndWait().ifPresent(action);
     }
 
     private MenuItem editAllMenuItem() {
@@ -169,4 +133,19 @@ public class MainScene extends Scene {
         return menuItem;
     }
 
+    private LocalDate startOfWeek() {
+        return LogEntry.today().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+    }
+
+    private void monthAction(BiConsumer<LocalDate, Integer> timeSpanAction, int monthOffset) {
+        final LocalDate begin = LogEntry.today().with(TemporalAdjusters.firstDayOfMonth()).plusMonths(monthOffset);
+        final int days = YearMonth.from(begin).lengthOfMonth();
+        timeSpanAction.accept(begin, days);
+    }
+
+    private void chooseTimeSpan(final BiConsumer<LocalDate, LocalDate> action) {
+        DatePickerDialog.before("From", LogEntry.today()).showAndWait()
+                .ifPresent(from -> DatePickerDialog.between("To", from, LogEntry.today().plusDays(1)).showAndWait()
+                        .ifPresent(to -> action.accept(from, to)));
+    }
 }
