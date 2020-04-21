@@ -1,0 +1,3 @@
+[submodule "src/main/java/de/julianpadawan/common"]
+	path = src/main/java/de/julianpadawan/common
+	url = https://github.com/Julian24816/common.git
