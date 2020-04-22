@@ -8,7 +8,6 @@ import javafx.beans.property.*;
 import javafx.beans.value.ObservableObjectValue;
 import javafx.beans.value.ObservableStringValue;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.*;
 
@@ -176,11 +175,6 @@ public final class Activity extends ModelObject<Activity> {
                             .withColumn("color", ColumnType.STRING, Activity::getColor)
                             .withColumn("pointsPerMinute", ColumnType.DOUBLE, Activity::getPointsPerMinute)
             );
-
-            final boolean rootExists = selectWhere(ResultSet::next, "id=0");
-            if (!rootExists)
-                Database.execute("INSERT INTO activity VALUES (0, 0, 'Activity', '" + DEFAULT_COLOR + "');",
-                        PreparedStatement::execute, null);
         }
 
         @Override

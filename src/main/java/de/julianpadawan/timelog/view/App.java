@@ -80,7 +80,7 @@ public class App extends Application {
 
     private void setDefaultPreferences() {
         Preferences.set("DatabaseDriver", "SQLite");
-        Preferences.set("DatabaseURL", "timelog.sql");
+        Preferences.set("DatabaseURL", "timelog.sqlite");
         Preferences.set("DatabaseUsername", "");
         Preferences.set("DatabasePassword", "");
         Preferences.set("AutomaticLogin", false);
