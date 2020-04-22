@@ -59,4 +59,4 @@ CREATE TABLE IF NOT EXISTS goal
     person      int
         references person
             on update cascade on delete cascade
-)
+);

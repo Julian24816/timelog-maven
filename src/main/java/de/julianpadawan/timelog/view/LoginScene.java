@@ -2,7 +2,6 @@ package de.julianpadawan.timelog.view;
 
 import de.julianpadawan.common.customFX.ErrorAlert;
 import de.julianpadawan.common.customFX.GridPane2C;
-import de.julianpadawan.common.db.Database;
 import de.julianpadawan.timelog.preferences.PreferenceMap;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -53,11 +52,11 @@ public class LoginScene extends Scene {
     }
 
     private void login(ActionEvent event) {
-        Database.init(driver.getValue().name + ":" + database.getText(), username.getText(), password.getText());
         try {
-            Database.execFile("db/timelog.sql");
             preferenceMap.dumpPreferences();
-            onLogin.run();
+            if (App.initDatabase(driver.getValue().name + ":" + database.getText(),
+                    username.getText(), password.getText()))
+                onLogin.run();
         } catch (IOException e) {
             ErrorAlert.show("Datebase Init", e);
         }
