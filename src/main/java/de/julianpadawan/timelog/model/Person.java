@@ -33,7 +33,7 @@ public final class Person extends ModelObject<Person> {
     }
 
     public void setName(String value) {
-        name.setValue(value);
+        name.setValue(Objects.requireNonNull(value));
     }
 
     public DoubleProperty pointsFactorProperty() {

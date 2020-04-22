@@ -55,7 +55,7 @@ public final class Goal extends ModelObject<Goal> {
     }
 
     public void setActivity(Activity value) {
-        activity.setValue(value);
+        activity.setValue(Objects.requireNonNull(value));
     }
 
     public StringProperty intervalProperty() {
@@ -67,7 +67,7 @@ public final class Goal extends ModelObject<Goal> {
     }
 
     public void setInterval(String value) {
-        interval.setValue(value);
+        interval.setValue(Objects.requireNonNull(value));
     }
 
     public ObjectProperty<Duration> minDurationProperty() {
@@ -79,7 +79,7 @@ public final class Goal extends ModelObject<Goal> {
     }
 
     public void setMinDuration(Duration value) {
-        minDuration.setValue(value);
+        minDuration.setValue(Objects.requireNonNull(value));
     }
 
     public ObjectProperty<Person> personProperty() {

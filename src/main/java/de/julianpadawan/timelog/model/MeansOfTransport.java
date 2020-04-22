@@ -29,7 +29,7 @@ public final class MeansOfTransport extends ModelObject<MeansOfTransport> {
     }
 
     public void setName(String value) {
-        name.setValue(value);
+        name.setValue(Objects.requireNonNull(value));
     }
 
     @Override

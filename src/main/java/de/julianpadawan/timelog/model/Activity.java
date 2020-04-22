@@ -47,7 +47,7 @@ public final class Activity extends ModelObject<Activity> {
 
     private Activity(int id, int parentId, String name, String color, double pointsPerMinute) {
         super(id);
-        this.parentId.setValue(id == parentId ? 0 : parentId);
+        this.parentId.setValue(id == parentId ? 0 : parentId); // security measure, should never happen
         this.name.setValue(Objects.requireNonNull(name));
         this.color.setValue(Objects.requireNonNull(color));
         this.pointsPerMinute.setValue(pointsPerMinute);
@@ -89,7 +89,7 @@ public final class Activity extends ModelObject<Activity> {
     }
 
     public void setName(String value) {
-        name.setValue(value);
+        name.setValue(Objects.requireNonNull(value));
     }
 
     public StringProperty colorProperty() {
@@ -101,7 +101,7 @@ public final class Activity extends ModelObject<Activity> {
     }
 
     public void setColor(String value) {
-        color.setValue(value);
+        color.setValue(Objects.requireNonNull(value));
     }
 
     public DoubleProperty pointsPerMinuteProperty() {

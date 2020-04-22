@@ -59,7 +59,7 @@ public final class LogEntry extends ModelObject<LogEntry> {
     }
 
     public void setActivity(Activity value) {
-        activity.setValue(value);
+        activity.setValue(Objects.requireNonNull(value));
     }
 
     public StringProperty whatProperty() {
@@ -71,7 +71,7 @@ public final class LogEntry extends ModelObject<LogEntry> {
     }
 
     public void setWhat(String value) {
-        what.setValue(value);
+        what.setValue(Objects.requireNonNull(value));
     }
 
     public ObjectProperty<LocalDateTime> startProperty() {
@@ -83,7 +83,7 @@ public final class LogEntry extends ModelObject<LogEntry> {
     }
 
     public void setStart(LocalDateTime value) {
-        start.setValue(value);
+        start.setValue(Objects.requireNonNull(value));
     }
 
     public ObjectProperty<LocalDateTime> endProperty() {
