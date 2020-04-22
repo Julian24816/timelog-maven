@@ -8,6 +8,7 @@ import de.julianpadawan.timelog.model.Activity;
 import de.julianpadawan.timelog.model.Goal;
 import de.julianpadawan.timelog.model.LogEntry;
 import de.julianpadawan.timelog.model.QualityTime;
+import de.julianpadawan.timelog.preferences.Preferences;
 import de.julianpadawan.timelog.view.edit.GoalDialog;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -32,7 +33,7 @@ public class GoalsList extends VBox {
     private final ObservableList<Goal> goals = FXCollections.observableArrayList();
     private final Text pointsText = new Text("0");
     private final Pane pane = new FlowPane(10, 10);
-    private double points = 0;
+    private double points = 0, basePoints = 0;
 
     public GoalsList() {
         super(10);
@@ -69,10 +70,12 @@ public class GoalsList extends VBox {
         }
     }
 
-    private void calculatePoints() {
-        points = 0;
-        pointsText.setText("0");
-        LogEntry.FACTORY.getAllFinishedOnDateOf(LocalDateTime.now()).forEach(this::addPointsOf);
+    private static int sort(Node o1, Node o2) {
+        if (!(o1 instanceof GoalLine) || !(o2 instanceof GoalLine)) return 0;
+        final GoalLine line1 = (GoalLine) o1;
+        final GoalLine line2 = (GoalLine) o2;
+        final int complete = Boolean.compare(line2.calculator.isComplete(), line1.calculator.isComplete());
+        return complete != 0 ? complete : line1.goal.compareTo(line2.goal);
     }
 
     private void add(Goal added) {
@@ -83,18 +86,31 @@ public class GoalsList extends VBox {
         pane.getChildren().remove(new GoalLine(removed, false));
     }
 
-    public ObservableList<Goal> getGoals() {
-        return goals;
+    private void calculatePoints() {
+        points = basePoints = 0;
+        displayPoints();
+        LogEntry.FACTORY.getAllFinishedOnDateOf(LocalDateTime.now()).forEach(this::addPointsOf);
+    }
+
+    private void displayPoints() {
+        final long points = Math.round(this.points);
+        final long basePoints = Math.round(this.basePoints);
+        if (!Preferences.getBoolean("ShowPointsRelative")) pointsText.setText(Long.toString(points));
+        else pointsText.setText(String.format("%+d", points - basePoints));
     }
 
     private void addPointsOf(LogEntry entry) {
+        double factor = entry.getActivity().getPointsPerMinute();
+        for (QualityTime qualityTime : QualityTime.FACTORY.getAll(entry))
+            factor *= qualityTime.getSecond().getPointsFactor();
         final long minutes = entry.getStart().until(entry.getEnd(), ChronoUnit.MINUTES);
-        double points = minutes * entry.getActivity().getPointsPerMinute();
-        for (QualityTime qualityTime : QualityTime.FACTORY.getAll(entry)) {
-            points *= qualityTime.getSecond().getPointsFactor();
-        }
-        this.points += points;
-        pointsText.setText(Long.toString(Math.round(this.points)));
+        this.points += factor * minutes;
+        this.basePoints += minutes;
+        displayPoints();
+    }
+
+    public ObservableList<Goal> getGoals() {
+        return goals;
     }
 
     public void reload() {
@@ -110,14 +126,6 @@ public class GoalsList extends VBox {
         });
         FXCollections.sort(pane.getChildren(), GoalsList::sort);
         addPointsOf(newEntry);
-    }
-
-    private static int sort(Node o1, Node o2) {
-        if (!(o1 instanceof GoalLine) || !(o2 instanceof GoalLine)) return 0;
-        final GoalLine line1 = (GoalLine) o1;
-        final GoalLine line2 = (GoalLine) o2;
-        final int complete = Boolean.compare(line2.calculator.isComplete(), line1.calculator.isComplete());
-        return complete != 0 ? complete : line1.goal.compareTo(line2.goal);
     }
 
     private static class GoalLine extends HBox {
@@ -151,7 +159,10 @@ public class GoalsList extends VBox {
             streak.textProperty().bind(calculator.streakProperty());
             progress.textProperty().bind(calculator.progressProperty());
             calculator.init(LocalDateTime.now());
-            if (!calculator.isComplete()) getChildren().add(progress);
+            if (!calculator.isComplete()) {
+                getChildren().remove(progress);
+                getChildren().add(progress);
+            }
         }
 
         private void accept(LogEntry newEntry) {

@@ -7,10 +7,10 @@ import de.julianpadawan.timelog.preferences.PreferenceMap;
 import javafx.beans.binding.BooleanExpression;
 import javafx.scene.control.*;
 
-public final class PreferencesDialog extends Dialog<ButtonType> {
+public final class PreferencesDialog extends Dialog<Boolean> {
 
     private final BooleanExpression okEnabled;
-    public static final ButtonType OK_BUTTON = new ButtonType("Restart", ButtonBar.ButtonData.OK_DONE);
+    private static final ButtonType OK_BUTTON = new ButtonType("Restart", ButtonBar.ButtonData.OK_DONE);
 
     public PreferencesDialog() {
         super();
@@ -50,16 +50,18 @@ public final class PreferencesDialog extends Dialog<ButtonType> {
 
         gridPane2C.addSeparator();
 
-        final CheckBox enableGoals = gridPane2C.addRow("Enable Goals", new CheckBox());
-        preferenceMap.mapTo(enableGoals, "UseGoals");
-
         final CheckBox useActivityChooser = gridPane2C.addRow("Use Activity Chooser", new CheckBox());
         preferenceMap.mapTo(useActivityChooser, "UseActivityChooser");
 
+        final CheckBox enableGoals = gridPane2C.addRow("Enable Goals", new CheckBox());
+        preferenceMap.mapTo(enableGoals, "UseGoals");
+
+        final CheckBox relativePoints = gridPane2C.addRow("Show Points Relative", new CheckBox());
+        preferenceMap.mapTo(relativePoints, "ShowPointsRelative");
+        relativePoints.disableProperty().bind(enableGoals.selectedProperty().not());
+
         getDialogPane().getButtonTypes().addAll(OK_BUTTON, ButtonType.CANCEL);
         Button okButton = (Button) getDialogPane().lookupButton(OK_BUTTON);
-        okButton.setOnAction(event -> preferenceMap.dumpPreferences());
-
         okEnabled = CustomBindings.matches(scaling, "\\d+(\\.\\d+)?")
                 .and(CustomBindings.matches(marks, "\\d+"))
                 .and(CustomBindings.matches(marksWidth, "\\d+"))
@@ -67,6 +69,11 @@ public final class PreferencesDialog extends Dialog<ButtonType> {
                 .and(CustomBindings.matches(sleepID, "-1|\\d+"))
                 .and(CustomBindings.matches(sleepLineHeight, "\\d+"));
         okEnabled.addListener(observable -> okButton.setDisable(!okEnabled.getValue()));
+
+        setResultConverter(buttonType -> {
+            if (buttonType.equals(OK_BUTTON)) preferenceMap.dumpPreferences();
+            return buttonType.equals(OK_BUTTON);
+        });
     }
 
 }

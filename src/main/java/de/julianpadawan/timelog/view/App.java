@@ -64,8 +64,9 @@ public class App extends Application {
         Preferences.set("SleepID", -1);
         Preferences.set("SleepLineHeight", 20);
 
-        Preferences.set("UseGoals", false);
         Preferences.set("UseActivityChooser", true);
+        Preferences.set("UseGoals", false);
+        Preferences.set("ShowPointsRelative", true);
     }
 
     @Override

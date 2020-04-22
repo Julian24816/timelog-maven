@@ -122,8 +122,7 @@ public class MainScene extends Scene {
 
     private MenuItem preferencesMenuItem() {
         return getMenuItem("Preferences",
-                () -> new PreferencesDialog().showAndWait()
-                        .filter(buttonType -> buttonType.equals(PreferencesDialog.OK_BUTTON))
+                () -> new PreferencesDialog().showAndWait().filter(restart -> restart)
                         .ifPresent(ok -> App.restart(true)));
     }
 
