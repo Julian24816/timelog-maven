@@ -6,8 +6,11 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="timelog-maven" />
+        <module name="timelog" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="timelog-maven" target="11" />
+    </bytecodeTargetLevel>
   </component>
 </project>

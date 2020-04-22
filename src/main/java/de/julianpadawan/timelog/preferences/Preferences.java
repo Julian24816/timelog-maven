@@ -12,8 +12,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.Properties;
 
 public final class Preferences {
-    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
     public static final String FILE_NAME = "preferences.properties";
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
     private static final Properties PROPERTIES = new Properties();
 
     private Preferences() {
@@ -32,10 +32,6 @@ public final class Preferences {
         }
     }
 
-    public static String get(String key) {
-        return PROPERTIES.getProperty(key);
-    }
-
     public static boolean getBoolean(String key) {
         return Boolean.parseBoolean(PROPERTIES.getProperty(key));
     }
@@ -50,6 +46,10 @@ public final class Preferences {
 
     public static LocalTime getTime(String key) {
         return LocalTime.parse(get(key), TIME_FORMATTER);
+    }
+
+    public static String get(String key) {
+        return PROPERTIES.getProperty(key);
     }
 
     public static void set(String key, String value) {
