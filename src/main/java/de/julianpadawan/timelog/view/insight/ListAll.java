@@ -68,7 +68,7 @@ public class ListAll extends Alert {
             grid.addRow(row++,
                     new Text(FORMAT.format(logEntry.getStart())),
                     new Text(FORMAT.format(logEntry.getEnd())),
-                    new Text(App.formatDuration(duration)),
+                    new Text(App.formatDuration(duration, false)),
                     new Text(logEntry.getActivity().getName()),
                     new Text(logEntry.getWhat())
             );
@@ -82,7 +82,7 @@ public class ListAll extends Alert {
             grid.add(new Separator(), 0, row++, 5, 1);
 
             grid.add(new Text(DATE_FORMAT.format(accumulatingDate)), 0, row);
-            grid.add(new Text(App.formatDuration(accumulatedDuration)), 2, row);
+            grid.add(new Text(App.formatDuration(accumulatedDuration, false)), 2, row);
             row++;
 
         }

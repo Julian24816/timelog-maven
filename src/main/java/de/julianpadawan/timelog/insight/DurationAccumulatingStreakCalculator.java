@@ -77,7 +77,8 @@ public abstract class DurationAccumulatingStreakCalculator extends StreakCalcula
 
     @Override
     protected final void postInit() {
-        setProgress(App.formatDuration(referenceDateDuration) + "/" + App.formatDuration(minDuration));
+        setProgress(App.formatDuration(referenceDateDuration, true)
+                + "/" + App.formatDuration(minDuration, true));
         if (latest == null) {
             setComplete(false);
             setStreak(formatStreakDays(-1));

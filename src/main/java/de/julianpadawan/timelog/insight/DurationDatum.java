@@ -24,7 +24,7 @@ public final class DurationDatum implements StatisticalDatum<Duration> {
 
     @Override
     public String toString() {
-        return App.formatDuration(duration);
+        return App.formatDuration(duration, false);
     }
 
     @Override

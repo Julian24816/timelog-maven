@@ -23,11 +23,13 @@ public class App extends Application {
         stage.setScene(new LoginScene(() -> stage.setScene(new MainScene()), skipLogin));
     }
 
-    public static String formatDuration(Duration duration) {
+    public static String formatDuration(Duration duration, final boolean allowShortening) {
         if (duration.equals(Duration.ZERO)) return "";
         final long minutes = Math.floorDiv(duration.getSeconds(), 60) % 60;
         final long hours = Math.floorDiv(duration.getSeconds(), 3600);
-        return hours > 0 ? String.format("%dh %02dm", hours, minutes) : String.format("%dm", minutes);
+        if (minutes == 0 && hours == 0) return "";
+        if (allowShortening && minutes == 0) return String.format("%dh", hours);
+        return hours == 0 ? String.format("%dm", minutes) : String.format("%dh %02dm", hours, minutes);
     }
 
     @Override
