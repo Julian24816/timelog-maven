@@ -1,6 +1,9 @@
 package de.julianpadawan.timelog.view;
 
-import de.julianpadawan.common.customFX.*;
+import de.julianpadawan.common.customFX.CustomBindings;
+import de.julianpadawan.common.customFX.JoiningTextFlow;
+import de.julianpadawan.common.customFX.ResizableCanvas;
+import de.julianpadawan.common.customFX.TimeText;
 import de.julianpadawan.timelog.model.Activity;
 import de.julianpadawan.timelog.model.LogEntry;
 import de.julianpadawan.timelog.model.MeansOfTransport;
@@ -83,27 +86,14 @@ public class LogEntryList extends ScrollPane {
     }
 
     private void onListChanged(ListChangeListener.Change<? extends LogEntry> c) {
-        while (c.next()) {
-            if (c.wasPermutated()) {
-                ErrorAlert.show("ListChange", new UnsupportedOperationException("entries list must not be permutated"));
-            } else if (c.wasUpdated()) {
-                ErrorAlert.show("ListChange", new UnsupportedOperationException("entries list must not be updated"));
-            } else {
-                for (LogEntry added : c.getAddedSubList()) addEntry(added);
-                for (LogEntry removed : c.getRemoved()) removeEntry(removed);
-            }
-        }
+        vBox.getChildren().clear();
+        vBox.getChildren().add(placeholder);
+        entries.forEach(this::addEntry);
     }
 
     private void addEntry(LogEntry entry) {
         vBox.getChildren().remove(placeholder);
         vBox.getChildren().add(new ActivityLine(entry));
-    }
-
-    private void removeEntry(LogEntry removed) {
-        vBox.getChildren().remove(new ActivityLine(removed));
-        if (vBox.getChildren().isEmpty())
-            vBox.getChildren().add(placeholder);
     }
 
     public ObservableList<LogEntry> getEntries() {

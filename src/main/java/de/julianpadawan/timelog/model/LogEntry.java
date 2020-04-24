@@ -185,7 +185,7 @@ public final class LogEntry extends ModelObject<LogEntry> {
         }
 
         public LogEntry getLast() {
-            return Database.execute(definition.getBaseSelectSQL() + " ORDER BY end DESC", statement -> {
+            return Database.execute(definition.getBaseSelectSQL() + " ORDER BY end DESC LIMIT 1", statement -> {
                 try (final ResultSet resultSet = statement.executeQuery()) {
                     return this.selectFirst(resultSet);
                 }

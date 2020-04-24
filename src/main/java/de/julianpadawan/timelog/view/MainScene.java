@@ -10,6 +10,7 @@ import de.julianpadawan.timelog.view.insight.ListAll;
 import de.julianpadawan.timelog.view.insight.LookAtDayDialog;
 import de.julianpadawan.timelog.view.insight.LookAtDaysDialog;
 import de.julianpadawan.timelog.view.insight.Report;
+import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -24,6 +25,7 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class MainScene extends Scene {
 
@@ -33,7 +35,7 @@ public class MainScene extends Scene {
     public MainScene() {
         super(new BorderPane());
 
-        logEntryList.getEntries().addAll(LogEntry.FACTORY.getAllFinishedOnDateOf(LocalDateTime.now()));
+        logEntryList.getEntries().addAll(LogEntry.FACTORY.getAllFinishedOnDateOf(LocalDateTime.now()).stream().sorted().collect(Collectors.toList()));
 
         LocalDate today = LogEntry.today();
         final CurrentEntryDisplay currentEntryDisplay = new CurrentEntryDisplay(logEntry -> {
@@ -41,6 +43,7 @@ public class MainScene extends Scene {
             if (date.isAfter(today)) App.restart(true);
             else if (date.equals(today)) {
                 logEntryList.getEntries().add(logEntry);
+                FXCollections.sort(logEntryList.getEntries());
                 goals.acceptEntry(logEntry);
             }
         });

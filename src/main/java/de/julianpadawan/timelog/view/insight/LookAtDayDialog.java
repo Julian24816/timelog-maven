@@ -6,6 +6,7 @@ import javafx.scene.control.Alert;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.stream.Collectors;
 
 public class LookAtDayDialog extends Alert {
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
@@ -16,7 +17,7 @@ public class LookAtDayDialog extends Alert {
         setHeaderText("Day " + DATE_FORMAT.format(date));
 
         final LogEntryList logEntryList = new LogEntryList();
-        logEntryList.getEntries().addAll(LogEntry.FACTORY.getAllFinishedOnDateOf(LogEntry.atStartOfDay(date)));
+        logEntryList.getEntries().addAll(LogEntry.FACTORY.getAllFinishedOnDateOf(LogEntry.atStartOfDay(date)).stream().sorted().collect(Collectors.toList()));
         getDialogPane().setContent(logEntryList);
         setResizable(true);
     }
