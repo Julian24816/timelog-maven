@@ -1,5 +1,6 @@
 package de.julianpadawan.timelog.view.insight;
 
+import de.julianpadawan.common.customFX.Util;
 import de.julianpadawan.timelog.insight.ActivityStatistic;
 import de.julianpadawan.timelog.insight.QualityTimeStatistic;
 import de.julianpadawan.timelog.insight.Statistic;
@@ -8,7 +9,9 @@ import de.julianpadawan.timelog.model.Activity;
 import de.julianpadawan.timelog.model.LogEntry;
 import de.julianpadawan.timelog.preferences.Preferences;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
@@ -27,7 +30,7 @@ import java.util.List;
 public class Report extends Alert {
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
-    public Report(String timeFrame, Collection<LogEntry> logEntries) {
+    public Report(String timeFrame, Collection<LogEntry> logEntries, int averagedOver) {
         super(AlertType.INFORMATION);
         setTitle("Report");
         setHeaderText("Report for " + timeFrame);
@@ -35,7 +38,7 @@ public class Report extends Alert {
         final VBox vBox = new VBox(20);
         Statistic<Activity, Duration> activityStatistic = ActivityStatistic.of(logEntries);
         if (Preferences.getBoolean("FlattenActivityStatistic")) activityStatistic = activityStatistic.flattened();
-        vBox.getChildren().add(new ReportLine<>(activityStatistic, Preferences.getInt("ActivityStatisticDefaultDepth")));
+        vBox.getChildren().add(new ReportLine<>(activityStatistic, Preferences.getInt("ActivityStatisticDefaultDepth"), averagedOver));
         vBox.getChildren().add(new ReportLine<>(QualityTimeStatistic.of(logEntries), 1));
 
         final ScrollPane scrollPane = new ScrollPane(vBox);
@@ -47,13 +50,16 @@ public class Report extends Alert {
     }
 
     public static Report on(LocalDate date) {
-        return new Report(DATE_FORMAT.format(date), LogEntry.FACTORY.getAllFinishedOnDateOf(LogEntry.atStartOfDay(date)));
+        return new Report(DATE_FORMAT.format(date),
+                LogEntry.FACTORY.getAllFinishedOnDateOf(LogEntry.atStartOfDay(date)),
+                1);
     }
 
     public static Report between(LocalDate begin, LocalDate end) {
         if (!begin.isBefore(end)) throw new IllegalArgumentException();
         return new Report(DATE_FORMAT.format(begin) + " - " + DATE_FORMAT.format(end),
-                LogEntry.FACTORY.getAllFinishedBetween(begin, end.plus(1, ChronoUnit.DAYS)));
+                LogEntry.FACTORY.getAllFinishedBetween(begin, end.plus(1, ChronoUnit.DAYS)),
+                (int) begin.until(end, ChronoUnit.DAYS) + 1);
     }
 
     private static class ReportLine<T, D> extends StackPane {
@@ -61,26 +67,41 @@ public class Report extends Alert {
         private final VBox all;
         private boolean expanded;
 
-        public ReportLine(Statistic<T, D> statistic, int expandedDepth) {
-            single = getLine(statistic.getName(), statistic.getAggregateData());
-            all = getExpandedView(statistic, expandedDepth);
+        public ReportLine(Statistic<T, D> statistic, int expandedDepth, int averagedOver) {
+            single = getLine(statistic.getName(), statistic.getAggregateData(), averagedOver);
+            all = getExpandedView(statistic, expandedDepth, averagedOver);
 
             getChildren().add(single);
             setOnMouseClicked(this::onclick);
             show(expanded = expandedDepth > 0);
         }
 
-        private HBox getLine(String label, StatisticalDatum<?> datum) {
+        public ReportLine(Statistic<T, D> statistic, int expandedDepth) {
+            this(statistic, expandedDepth, 1);
+        }
+
+        private HBox getLine(String label, StatisticalDatum<?> datum, int averagedOver) {
             final Region spacer = new Region();
             spacer.maxWidth(Double.MAX_VALUE);
             HBox.setHgrow(spacer, Priority.ALWAYS);
-            return new HBox(10, new Text(label), spacer, new Text(datum.toString()));
+            final HBox hBox = new HBox(10, new Text(label), Util.hBoxSpacer(), getText(datum));
+            if (averagedOver > 1) {
+                hBox.getChildren().add(getText(datum.dividedBy(averagedOver)));
+            }
+            return hBox;
         }
 
-        private VBox getExpandedView(Statistic<T, D> statistic, int expandedDepth) {
+        private Label getText(StatisticalDatum<?> datum) {
+            final Label text = new Label(datum.toString());
+            text.setPrefWidth(70);
+            text.setAlignment(Pos.BASELINE_RIGHT);
+            return text;
+        }
+
+        private VBox getExpandedView(Statistic<T, D> statistic, int expandedDepth, int averagedOver) {
             VBox all = new VBox(5);
             all.setPadding(new Insets(0, 0, 10, 0));
-            all.getChildren().add(getLine(statistic.getName(), statistic.getData()));
+            all.getChildren().add(getLine(statistic.getName(), statistic.getData(), averagedOver));
 
             final List<Statistic<T, D>> subStatistics = new ArrayList<>(statistic.getSubStatistics());
             subStatistics.sort(Comparator.<Statistic<T, D>>naturalOrder().reversed());

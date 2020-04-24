@@ -43,6 +43,11 @@ public final class DurationDatum implements StatisticalDatum<Duration> {
     }
 
     @Override
+    public StatisticalDatum<Duration> dividedBy(int averagedOver) {
+        return new DurationDatum(duration.dividedBy(averagedOver));
+    }
+
+    @Override
     public int compareTo(StatisticalDatum<Duration> o) {
         return duration.compareTo(o.get());
     }

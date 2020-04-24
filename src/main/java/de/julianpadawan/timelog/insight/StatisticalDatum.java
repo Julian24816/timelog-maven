@@ -9,4 +9,6 @@ public interface StatisticalDatum<D> extends Comparable<StatisticalDatum<D>> {
     String toString();
 
     boolean isZero();
+
+    StatisticalDatum<D> dividedBy(int averagedOver);
 }
