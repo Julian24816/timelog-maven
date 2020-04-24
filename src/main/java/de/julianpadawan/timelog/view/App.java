@@ -108,6 +108,8 @@ public class App extends Application {
 
         Preferences.set("MainSceneWidth", Region.USE_COMPUTED_SIZE);
         Preferences.set("MainSceneHeight", Region.USE_COMPUTED_SIZE);
+        Preferences.set("ReportDialogWidth", 300);
+        Preferences.set("ReportDialogHeight", 400);
 
         Preferences.set("MinuteToPixelScale", 1.2f);
 
@@ -122,6 +124,7 @@ public class App extends Application {
         Preferences.set("UseActivityChooser", false);
         Preferences.set("UseGoals", false);
 
+        Preferences.set("ShowDailyAveragesInReport", true);
         Preferences.set("FlattenActivityStatistic", true);
         Preferences.set("ActivityStatisticDefaultDepth", 2);
     }

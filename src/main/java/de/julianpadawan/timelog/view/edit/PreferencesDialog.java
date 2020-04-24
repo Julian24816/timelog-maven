@@ -65,6 +65,9 @@ public final class PreferencesDialog extends Dialog<Boolean> {
         final CheckBox flattenReport = gridPane2C.addRow("Flatten Activity Report", new CheckBox());
         preferenceMap.mapTo(flattenReport, "FlattenActivityStatistic");
 
+        final CheckBox dailyAverages = gridPane2C.addRow("Show Daily Averages In Report", new CheckBox());
+        preferenceMap.mapTo(dailyAverages, "ShowDailyAveragesInReport");
+
         getDialogPane().getButtonTypes().addAll(OK_BUTTON, ButtonType.CANCEL);
         Button okButton = (Button) getDialogPane().lookupButton(OK_BUTTON);
         okEnabled = CustomBindings.matches(marks, "\\d+")

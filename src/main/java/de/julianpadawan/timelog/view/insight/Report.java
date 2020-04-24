@@ -15,7 +15,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
 import java.time.Duration;
@@ -38,14 +40,17 @@ public class Report extends Alert {
         final VBox vBox = new VBox(20);
         Statistic<Activity, Duration> activityStatistic = ActivityStatistic.of(logEntries);
         if (Preferences.getBoolean("FlattenActivityStatistic")) activityStatistic = activityStatistic.flattened();
-        vBox.getChildren().add(new ReportLine<>(activityStatistic, Preferences.getInt("ActivityStatisticDefaultDepth"), averagedOver));
+        vBox.getChildren().add(new ReportLine<>(activityStatistic, Preferences.getInt("ActivityStatisticDefaultDepth"),
+                Preferences.getBoolean("ShowDailyAveragesInReport") ? averagedOver : 1));
         vBox.getChildren().add(new ReportLine<>(QualityTimeStatistic.of(logEntries), 1));
 
         final ScrollPane scrollPane = new ScrollPane(vBox);
         scrollPane.setFitToWidth(true);
-        scrollPane.setMaxHeight(500);
         getDialogPane().setContent(scrollPane);
-        getDialogPane().setPrefSize(250, 400);
+        getDialogPane().setPrefWidth(Preferences.getDouble("ReportDialogWidth"));
+        getDialogPane().setPrefHeight(Preferences.getDouble("ReportDialogHeight"));
+        getDialogPane().widthProperty().addListener((obs, old, value) -> Preferences.set("ReportDialogWidth", (double) value));
+        getDialogPane().heightProperty().addListener((obs, old, value) -> Preferences.set("ReportDialogHeight", (double) value));
         setResizable(true);
     }
 
@@ -68,6 +73,7 @@ public class Report extends Alert {
         private boolean expanded;
 
         public ReportLine(Statistic<T, D> statistic, int expandedDepth, int averagedOver) {
+            super();
             single = getLine(statistic.getName(), statistic.getAggregateData(), averagedOver);
             all = getExpandedView(statistic, expandedDepth, averagedOver);
 
@@ -81,21 +87,11 @@ public class Report extends Alert {
         }
 
         private HBox getLine(String label, StatisticalDatum<?> datum, int averagedOver) {
-            final Region spacer = new Region();
-            spacer.maxWidth(Double.MAX_VALUE);
-            HBox.setHgrow(spacer, Priority.ALWAYS);
-            final HBox hBox = new HBox(10, new Text(label), Util.hBoxSpacer(), getText(datum));
+            final HBox hBox = new HBox(5, new Text(label), Util.hBoxSpacer(), getText(datum));
             if (averagedOver > 1) {
                 hBox.getChildren().add(getText(datum.dividedBy(averagedOver)));
             }
             return hBox;
-        }
-
-        private Label getText(StatisticalDatum<?> datum) {
-            final Label text = new Label(datum.toString());
-            text.setPrefWidth(70);
-            text.setAlignment(Pos.BASELINE_RIGHT);
-            return text;
         }
 
         private VBox getExpandedView(Statistic<T, D> statistic, int expandedDepth, int averagedOver) {
@@ -106,11 +102,18 @@ public class Report extends Alert {
             final List<Statistic<T, D>> subStatistics = new ArrayList<>(statistic.getSubStatistics());
             subStatistics.sort(Comparator.<Statistic<T, D>>naturalOrder().reversed());
             for (Statistic<T, D> subStatistic : subStatistics) {
-                final ReportLine<T, D> line = new ReportLine<>(subStatistic, Math.max(0, expandedDepth - 1));
+                final ReportLine<T, D> line = new ReportLine<>(subStatistic, Math.max(0, expandedDepth - 1), averagedOver);
                 line.setPadding(new Insets(0, 0, 0, 10));
                 all.getChildren().add(line);
             }
             return all.getChildren().size() > 1 ? all : null;
+        }
+
+        private Label getText(StatisticalDatum<?> datum) {
+            final Label text = new Label(datum.toString());
+            text.setMinWidth(60);
+            text.setAlignment(Pos.BASELINE_RIGHT);
+            return text;
         }
 
         private void onclick(MouseEvent mouseEvent) {
