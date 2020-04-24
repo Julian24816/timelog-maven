@@ -121,6 +121,9 @@ public class App extends Application {
 
         Preferences.set("UseActivityChooser", false);
         Preferences.set("UseGoals", false);
+
+        Preferences.set("FlattenActivityStatistic", true);
+        Preferences.set("ActivityStatisticDefaultDepth", 2);
     }
 
     @Override

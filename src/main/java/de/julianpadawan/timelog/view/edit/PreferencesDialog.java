@@ -1,6 +1,7 @@
 package de.julianpadawan.timelog.view.edit;
 
 import de.julianpadawan.common.customFX.CustomBindings;
+import de.julianpadawan.common.customFX.DoubleTextField;
 import de.julianpadawan.common.customFX.GridPane2C;
 import de.julianpadawan.common.customFX.TimeTextField;
 import de.julianpadawan.timelog.preferences.PreferenceMap;
@@ -9,8 +10,8 @@ import javafx.scene.control.*;
 
 public final class PreferencesDialog extends Dialog<Boolean> {
 
-    private final BooleanExpression okEnabled;
     private static final ButtonType OK_BUTTON = new ButtonType("Restart", ButtonBar.ButtonData.OK_DONE);
+    private final BooleanExpression okEnabled;
 
     public PreferencesDialog() {
         super();
@@ -21,7 +22,7 @@ public final class PreferencesDialog extends Dialog<Boolean> {
         GridPane2C gridPane2C = new GridPane2C(10);
         getDialogPane().setContent(gridPane2C);
 
-        final TextField scaling = gridPane2C.addRow("Minute To Pixel Scale", new TextField());
+        final DoubleTextField scaling = gridPane2C.addRow("Minute To Pixel Scale", new DoubleTextField(1, false));
         preferenceMap.mapTo(scaling, "MinuteToPixelScale");
 
         gridPane2C.addSeparator();
@@ -56,14 +57,23 @@ public final class PreferencesDialog extends Dialog<Boolean> {
         final CheckBox enableGoals = gridPane2C.addRow("Enable Goals", new CheckBox());
         preferenceMap.mapTo(enableGoals, "UseGoals");
 
+        gridPane2C.addSeparator();
+
+        final TextField activityDepth = gridPane2C.addRow("Activity Report Default Depth", new TextField());
+        preferenceMap.mapTo(activityDepth, "ActivityStatisticDefaultDepth");
+
+        final CheckBox flattenReport = gridPane2C.addRow("Flatten Activity Report", new CheckBox());
+        preferenceMap.mapTo(flattenReport, "FlattenActivityStatistic");
+
         getDialogPane().getButtonTypes().addAll(OK_BUTTON, ButtonType.CANCEL);
         Button okButton = (Button) getDialogPane().lookupButton(OK_BUTTON);
-        okEnabled = CustomBindings.matches(scaling, "\\d+(\\.\\d+)?")
-                .and(CustomBindings.matches(marks, "\\d+"))
+        okEnabled = CustomBindings.matches(marks, "\\d+")
+                .and(scaling.validProperty())
                 .and(CustomBindings.matches(marksWidth, "\\d+"))
                 .and(startOfDay.valueProperty().isNotNull())
                 .and(CustomBindings.matches(sleepID, "-1|\\d+"))
-                .and(CustomBindings.matches(sleepLineHeight, "\\d+"));
+                .and(CustomBindings.matches(sleepLineHeight, "\\d+"))
+                .and(CustomBindings.matches(activityDepth, "[1-9]\\d*"));
         okEnabled.addListener(observable -> okButton.setDisable(!okEnabled.getValue()));
 
         setResultConverter(buttonType -> {

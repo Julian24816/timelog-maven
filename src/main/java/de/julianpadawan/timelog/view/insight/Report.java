@@ -4,7 +4,9 @@ import de.julianpadawan.timelog.insight.ActivityStatistic;
 import de.julianpadawan.timelog.insight.QualityTimeStatistic;
 import de.julianpadawan.timelog.insight.Statistic;
 import de.julianpadawan.timelog.insight.StatisticalDatum;
+import de.julianpadawan.timelog.model.Activity;
 import de.julianpadawan.timelog.model.LogEntry;
+import de.julianpadawan.timelog.preferences.Preferences;
 import javafx.geometry.Insets;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ScrollPane;
@@ -13,6 +15,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -30,8 +33,10 @@ public class Report extends Alert {
         setHeaderText("Report for " + timeFrame);
 
         final VBox vBox = new VBox(20);
-        vBox.getChildren().add(new ReportLine<>(ActivityStatistic.of(logEntries).flattened(), 1));
-        vBox.getChildren().add(new ReportLine<>(QualityTimeStatistic.of(logEntries).flattened(), 1));
+        Statistic<Activity, Duration> activityStatistic = ActivityStatistic.of(logEntries);
+        if (Preferences.getBoolean("FlattenActivityStatistic")) activityStatistic = activityStatistic.flattened();
+        vBox.getChildren().add(new ReportLine<>(activityStatistic, Preferences.getInt("ActivityStatisticDefaultDepth")));
+        vBox.getChildren().add(new ReportLine<>(QualityTimeStatistic.of(logEntries), 1));
 
         final ScrollPane scrollPane = new ScrollPane(vBox);
         scrollPane.setFitToWidth(true);
