@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Launcher" type="Application" factoryName="Application" nameIsGenerated="true">
     <option name="MAIN_CLASS_NAME" value="de.julianpadawan.timelog.Launcher" />
-    <module name="timelog-maven" />
+    <module name="timelog" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="de.julianpadawan.timelog.*" />

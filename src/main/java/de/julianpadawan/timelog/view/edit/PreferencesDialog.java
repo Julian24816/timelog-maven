@@ -56,10 +56,6 @@ public final class PreferencesDialog extends Dialog<Boolean> {
         final CheckBox enableGoals = gridPane2C.addRow("Enable Goals", new CheckBox());
         preferenceMap.mapTo(enableGoals, "UseGoals");
 
-        final CheckBox relativePoints = gridPane2C.addRow("Show Points Relative", new CheckBox());
-        preferenceMap.mapTo(relativePoints, "ShowPointsRelative");
-        relativePoints.disableProperty().bind(enableGoals.selectedProperty().not());
-
         getDialogPane().getButtonTypes().addAll(OK_BUTTON, ButtonType.CANCEL);
         Button okButton = (Button) getDialogPane().lookupButton(OK_BUTTON);
         okEnabled = CustomBindings.matches(scaling, "\\d+(\\.\\d+)?")

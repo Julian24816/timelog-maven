@@ -36,7 +36,7 @@ public final class ActivityDialog extends ObjectDialog<Activity> {
 
         color = gridPane2C.addRow("Color", new ColorPicker(Color.valueOf(Activity.DEFAULT_COLOR)));
 
-        pointsPerMinute = new DoubleTextField(1, false);
+        pointsPerMinute = new DoubleTextField(1, true);
         if (Preferences.getBoolean("UseGoals")) gridPane2C.addRow("Points Per Minute", pointsPerMinute);
 
         addOKRequirement(parent.valueProperty().isNotNull());

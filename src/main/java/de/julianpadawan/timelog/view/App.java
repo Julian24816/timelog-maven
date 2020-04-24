@@ -15,7 +15,7 @@ import java.time.LocalTime;
 
 public class App extends Application {
     private static final int APPLICATION_ID = 0x74696d6;
-    private static final int USER_VERSION = 1;
+    private static final int CURRENT_DATABASE_VERSION = 2;
     private static Stage stage;
 
     public static void main(String[] args) {
@@ -42,7 +42,7 @@ public class App extends Application {
         if (application_id == 0) return createDatabase();
         else if (application_id != APPLICATION_ID)
             throw new IOException("Database file does not belong to this application");
-        else if (Database.queryPragma("user_version") < USER_VERSION) return updateDatabase();
+        else if (Database.queryPragma("user_version") < CURRENT_DATABASE_VERSION) return updateDatabase();
         return true;
     }
 
@@ -50,17 +50,21 @@ public class App extends Application {
         final boolean ok = new Alert(Alert.AlertType.CONFIRMATION, "Database needs to be created. Proceed?")
                 .showAndWait().filter(buttonType -> buttonType.equals(ButtonType.OK)).isPresent();
         if (ok) {
-            Database.execFile("db/create1.sql");
+            Database.execFile("db/1.sql");
+            Database.execFile("db/2.sql");
             Database.setPragma("application_id", APPLICATION_ID);
-            Database.setPragma("user_version", USER_VERSION);
+            Database.setPragma("user_version", CURRENT_DATABASE_VERSION);
         }
         return ok;
     }
 
-    private static boolean updateDatabase() {
-        new Alert(Alert.AlertType.ERROR, "Database needs to be updated. Not implemented yet").show();
-        //update database
-        return false;
+    private static boolean updateDatabase() throws IOException {
+        final boolean ok = new Alert(Alert.AlertType.CONFIRMATION, "Database needs to be updated. Proceed?")
+                .showAndWait().filter(buttonType -> buttonType.equals(ButtonType.OK)).isPresent();
+        if (ok) {
+            if (Database.queryPragma("user_version") == 1) Database.execFile("db/2.sql");
+        }
+        return ok;
     }
 
     @Override
@@ -95,9 +99,8 @@ public class App extends Application {
         Preferences.set("SleepID", -1);
         Preferences.set("SleepLineHeight", 20);
 
-        Preferences.set("UseActivityChooser", true);
+        Preferences.set("UseActivityChooser", false);
         Preferences.set("UseGoals", false);
-        Preferences.set("ShowPointsRelative", true);
     }
 
     @Override

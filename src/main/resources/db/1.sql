@@ -63,3 +63,5 @@ CREATE TABLE goal
         references person
             on update cascade on delete cascade
 );
+
+PRAGMA user_version = 1;

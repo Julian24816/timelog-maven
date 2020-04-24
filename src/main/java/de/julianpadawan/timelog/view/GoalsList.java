@@ -8,7 +8,6 @@ import de.julianpadawan.timelog.model.Activity;
 import de.julianpadawan.timelog.model.Goal;
 import de.julianpadawan.timelog.model.LogEntry;
 import de.julianpadawan.timelog.model.QualityTime;
-import de.julianpadawan.timelog.preferences.Preferences;
 import de.julianpadawan.timelog.view.edit.GoalDialog;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -33,7 +32,7 @@ public class GoalsList extends VBox {
     private final ObservableList<Goal> goals = FXCollections.observableArrayList();
     private final Text pointsText = new Text("0");
     private final Pane pane = new FlowPane(10, 10);
-    private double points = 0, basePoints = 0;
+    private double points = 0;
 
     public GoalsList() {
         super(10);
@@ -87,16 +86,13 @@ public class GoalsList extends VBox {
     }
 
     private void calculatePoints() {
-        points = basePoints = 0;
+        points = 0;
         displayPoints();
         LogEntry.FACTORY.getAllFinishedOnDateOf(LocalDateTime.now()).forEach(this::addPointsOf);
     }
 
     private void displayPoints() {
-        final long points = Math.round(this.points);
-        final long basePoints = Math.round(this.basePoints);
-        if (!Preferences.getBoolean("ShowPointsRelative")) pointsText.setText(Long.toString(points));
-        else pointsText.setText(String.format("%+d", points - basePoints));
+        pointsText.setText(String.format("%+d", Math.round(this.points)));
     }
 
     private void addPointsOf(LogEntry entry) {
@@ -105,7 +101,6 @@ public class GoalsList extends VBox {
             factor *= qualityTime.getSecond().getPointsFactor();
         final long minutes = entry.getStart().until(entry.getEnd(), ChronoUnit.MINUTES);
         this.points += factor * minutes;
-        this.basePoints += minutes;
         displayPoints();
     }
 
