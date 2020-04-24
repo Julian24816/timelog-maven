@@ -8,9 +8,10 @@ import javafx.scene.control.TextField;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 
 public final class LogEntryDialog extends ObjectDialog<LogEntry> {
-    private final CreatingChoiceBox<Activity> activity;
+    private CreatingChoiceBox<Activity> activity;
     private final TextField what;
     private final CreatingChoiceBox<MeansOfTransport> meansOfTransport;
     private final AssociationFlowPane<LogEntry, Person, QualityTime> people;
@@ -25,7 +26,9 @@ public final class LogEntryDialog extends ObjectDialog<LogEntry> {
         super("Log Entry", editedObject);
 
         activity = gridPane2C.addRow("Type", CreatingChoiceBox.simple(
-                Activity.FACTORY.getAll(), ActivityDialog::new, ActivityDialog::new));
+                Activity.FACTORY.getAll(),
+                () -> Optional.of(activity).map(CreatingChoiceBox::getValue).map(ActivityDialog::forParent).orElseGet(ActivityDialog::new),
+                ActivityDialog::new));
         activity.setValue(Activity.getRoot());
         meansOfTransport = gridPane2C.addRow("Transport", CreatingChoiceBox.nullable(
                 MeansOfTransport.FACTORY.getAll(), MeansOfTransportDialog::new, MeansOfTransportDialog::new));
