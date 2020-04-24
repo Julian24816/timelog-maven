@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -82,26 +83,25 @@ public class MainScene extends Scene {
     }
 
     private Menu getMenu(final String label, final Consumer<LocalDate> dayAction, final BiConsumer<LocalDate, Integer> timeSpanAction) {
+        final LocalDate last = LogEntry.getDate(LogEntry.FACTORY.getLast().getEnd());
+        final LocalDate first = LogEntry.getDate(LogEntry.FACTORY.getFirst().getEnd());
         return new Menu(label, null,
                 getMenuItem("Today", () -> dayAction.accept(LogEntry.today())),
                 getMenuItem("Yesterday", () -> dayAction.accept(LogEntry.today().minusDays(1))),
-                getMenuItem("Day ...", () -> chooseDay(dayAction)),
+                getMenuItem("Day ...", () -> chooseDay(dayAction), first.isBefore(LogEntry.today().minusDays(1))),
                 new SeparatorMenuItem(),
-                getMenuItem("Last 4 days", () -> timeSpanAction.accept(LogEntry.today().minusDays(3), 4)),
+                getMenuItem("Last 4 days", () -> timeSpanAction.accept(LogEntry.today().minusDays(3), 4), first.isBefore(last.minusDays(2))),
                 getMenuItem("Current Week", () -> timeSpanAction.accept(startOfWeek(), 7)),
-                getMenuItem("Last Week", () -> timeSpanAction.accept(startOfWeek().minus(7, ChronoUnit.DAYS), 7)),
+                getMenuItem("Last Week", () -> timeSpanAction.accept(startOfWeek().minus(7, ChronoUnit.DAYS), 7), first.isBefore(startOfWeek())),
                 new SeparatorMenuItem(),
                 getMenuItem("Current Month", () -> monthAction(timeSpanAction, 0)),
-                getMenuItem("Last Month", () -> monthAction(timeSpanAction, -1)),
+                getMenuItem("Last Month", () -> monthAction(timeSpanAction, -1), YearMonth.from(first).isBefore(YearMonth.now())),
+                getMenuItem("All Time", () -> timeSpanAction.accept(first, (int) first.until(last, ChronoUnit.DAYS) + 1), first.isBefore(last)),
                 new SeparatorMenuItem(),
                 getMenuItem("Days From ... To ...",
                         () -> chooseTimeSpan((from, to) -> timeSpanAction.accept(from,
-                                (int) from.until(to, ChronoUnit.DAYS))))
+                                (int) from.until(to, ChronoUnit.DAYS) + 1)), first.isBefore(last))
         );
-    }
-
-    private void chooseDay(final Consumer<LocalDate> action) {
-        DatePickerDialog.before(LogEntry.today()).showAndWait().ifPresent(action);
     }
 
     private MenuItem editAllMenuItem() {
@@ -137,6 +137,19 @@ public class MainScene extends Scene {
         return menuItem;
     }
 
+    private void chooseDay(final Consumer<LocalDate> action) {
+        Optional.ofNullable(LogEntry.FACTORY.getFirst()).map(LogEntry::getEnd).map(LogEntry::getDate)
+                .map(first -> first.minusDays(1))
+                .map(begin -> DatePickerDialog.between(begin, LogEntry.today().minusDays(1)))
+                .orElseGet(() -> DatePickerDialog.before(LogEntry.today().minusDays(1))).showAndWait().ifPresent(action);
+    }
+
+    private MenuItem getMenuItem(String label, final Runnable eventHandler, boolean enabled) {
+        final MenuItem menuItem = getMenuItem(label, eventHandler);
+        menuItem.setDisable(!enabled);
+        return menuItem;
+    }
+
     private LocalDate startOfWeek() {
         return LogEntry.today().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
     }
@@ -148,7 +161,7 @@ public class MainScene extends Scene {
     }
 
     private void chooseTimeSpan(final BiConsumer<LocalDate, LocalDate> action) {
-        DatePickerDialog.before("From", LogEntry.today()).showAndWait()
+        DatePickerDialog.between("From", LogEntry.getDate(LogEntry.FACTORY.getFirst().getEnd()).minusDays(1), LogEntry.today()).showAndWait()
                 .ifPresent(from -> DatePickerDialog.between("To", from, LogEntry.today().plusDays(1)).showAndWait()
                         .ifPresent(to -> action.accept(from, to)));
     }
