@@ -33,7 +33,9 @@ public class MainScene extends Scene {
     private final GoalsList goals = new GoalsList();
 
     public MainScene() {
-        super(new BorderPane());
+        super(new BorderPane(), Preferences.getDouble("MainSceneWidth"), Preferences.getDouble("MainSceneHeight"));
+        widthProperty().addListener((obs, old, value) -> Preferences.set("MainSceneWidth", (double) value));
+        heightProperty().addListener((obs, old, value) -> Preferences.set("MainSceneHeight", (double) value));
 
         logEntryList.getEntries().addAll(LogEntry.FACTORY.getAllFinishedOnDateOf(LocalDateTime.now()).stream().sorted().collect(Collectors.toList()));
 
