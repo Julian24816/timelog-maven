@@ -36,7 +36,6 @@ public class ListAll extends Alert {
         final ScrollPane scrollPane = new ScrollPane(createGridPane(activity, logEntries));
         scrollPane.setFitToWidth(true);
         scrollPane.setMaxHeight(500);
-        scrollPane.widthProperty().addListener((observable, oldValue, newValue) -> System.out.println("w:" + newValue));
         getDialogPane().setContent(scrollPane);
         getDialogPane().setPrefSize(500, 500);
     }
