@@ -5,8 +5,10 @@ import de.julianpadawan.common.db.Database;
 import de.julianpadawan.timelog.model.Activity;
 import de.julianpadawan.timelog.preferences.Preferences;
 import javafx.application.Application;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -24,7 +26,22 @@ public class App extends Application {
 
     static void restart(boolean skipLogin) {
         Activity.FACTORY.clearCache();
-        stage.setScene(new LoginScene(() -> stage.setScene(new MainScene()), skipLogin));
+        showLoginScene(stage, skipLogin);
+    }
+
+    private static void showLoginScene(Stage stage, boolean skipLogin) {
+        showScene(stage, new LoginScene(() -> showMainScene(stage), skipLogin));
+    }
+
+    private static void showScene(Stage stage, final Scene scene) {
+        stage.hide();
+        stage.setScene(scene);
+        stage.centerOnScreen();
+        stage.show();
+    }
+
+    private static void showMainScene(Stage stage) {
+        showScene(stage, new MainScene());
     }
 
     public static String formatDuration(Duration duration, final boolean allowShortening) {
@@ -71,7 +88,7 @@ public class App extends Application {
     public void start(Stage stage) {
         App.stage = stage;
         stage.setTitle("TimeLog");
-        stage.setScene(new LoginScene(() -> stage.setScene(new MainScene()), true));
+        showLoginScene(stage, true);
         stage.show();
     }
 
@@ -88,6 +105,9 @@ public class App extends Application {
         Preferences.set("DatabaseUsername", "");
         Preferences.set("DatabasePassword", "");
         Preferences.set("AutomaticLogin", false);
+
+        Preferences.set("MainSceneWidth", Region.USE_COMPUTED_SIZE);
+        Preferences.set("MainSceneHeight", Region.USE_COMPUTED_SIZE);
 
         Preferences.set("MinuteToPixelScale", 1.2f);
 
